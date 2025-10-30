@@ -1,0 +1,19 @@
+npm run types:check ||
+(
+	echo '😭 Failed Type check 🚫'
+	false;
+)
+
+npm run lint ||
+(
+	echo '😭 Failed Eslint check 🚫'
+	false;
+)
+
+npm run format:check ||
+(
+	echo '😭 Failed Format check 🚫'
+	false;
+)
+
+echo '🥳 Finished.. commiting 💚'
