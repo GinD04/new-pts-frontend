@@ -57,8 +57,6 @@ eslint:
 
 build-sonar:
   stage: build-sonar
-  needs: 
-    - test-job
   image: 
     name: sonarsource/sonar-scanner-cli:11
     entrypoint: [""]
