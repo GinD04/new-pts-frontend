@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     distDir: 'dist',
     trailingSlash: true,
     skipTrailingSlashRedirect: false,
-    basePath: process.env.PUBLIC_URL || '',
+    basePath: process.env.PUBLIC_URL ?? '',
 };
 
 export default nextConfig;
