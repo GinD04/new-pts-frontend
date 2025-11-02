@@ -1,0 +1,140 @@
+stages:
+  - build
+  - test
+  - build-sonar
+  - deploy
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'main'
+    - if: $CI_COMMIT_BRANCH == 'develop'
+    - if: $CI_COMMIT_BRANCH == 'production'
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
+
+default:
+  image: node:23.6.1-alpine
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+      - .next/cache/
+      - coverage/
+      - "${CI_PROJECT_DIR}/.sonar/cache"
+
+variables:
+  NEXT_TELEMETRY_DISABLED: 1
+
+build:
+  stage: build
+  script:
+    - npm install
+    - export PUBLIC_URL=
+    - if [[ $CI_PIPELINE_SOURCE == 'merge_request_event' ]]; then export PUBLIC_URL=/review/$CI_COMMIT_REF_SLUG; fi
+    - npm run build
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - dist
+
+eslint:
+  stage: test
+  script:
+    - npx eslint --format gitlab .
+  artifacts:
+    reports:
+      codequality: gl-codequality.json
+  allow_failure: true
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+      - .next/cache/
+    policy: pull
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'develop'
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
+build-sonar:
+  stage: build-sonar
+  image: 
+    name: sonarsource/sonar-scanner-cli:11
+    entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+    GIT_DEPTH: "0"
+  script: 
+    - sonar-scanner -Dsonar.host.url="${SONAR_HOST_URL}"
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'develop'
+
+staging-deploy:
+  stage: deploy
+  image: $CI_REGISTRY/utils/images/ssh
+  needs:
+    - job: build
+      artifacts: true
+  environment:
+    name: staging
+    on_stop: staging-deploy-stop
+  cache: []
+  before_script:
+    - chmod 400 $STAGING_SSH_KEY
+  script:
+    - rsync -avz --delete --mkpath --chown=$STAGING_SSH_USER:www-data --chmod=g+w -e "ssh -i $STAGING_SSH_KEY -o StrictHostKeyChecking=no -p $STAGING_SSH_PORT" dist/ $STAGING_SSH_USER@$STAGING_SSH_HOST:/srv/pts/staging/
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'develop'
+
+staging-deploy-stop:
+  stage: deploy
+  image: $CI_REGISTRY/utils/images/ssh
+  variables:
+    GIT_STRATEGY: none
+  when: manual
+  environment:
+    name: staging
+    action: stop
+  cache: []
+  before_script:
+    - chmod 400 $STAGING_SSH_KEY
+  script:
+    - ssh -i $STAGING_SSH_KEY -o StrictHostKeyChecking=no -p $STAGING_SSH_PORT $STAGING_SSH_USER@$STAGING_SSH_HOST "rm -rf /srv/pts/staging/*"
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'develop'
+
+merge_request-review:
+  stage: deploy
+  image: $CI_REGISTRY/utils/images/ssh
+  needs:
+    - job: build
+      artifacts: true
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    url: "https://$FRONTEND_HOST/review/$CI_COMMIT_REF_SLUG/"
+    on_stop: merge_request-review-stop
+  cache: []
+  before_script:
+    - chmod 400 $STAGING_SSH_KEY
+  script:
+    - rsync -avz --delete --mkpath --chown=$STAGING_SSH_USER:www-data --chmod=g+w -e "ssh -i $STAGING_SSH_KEY -o StrictHostKeyChecking=no -p $STAGING_SSH_PORT" dist/ $STAGING_SSH_USER@$STAGING_SSH_HOST:/srv/pts/review/$CI_COMMIT_REF_SLUG/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
+merge_request-review-stop:
+  stage: deploy
+  image: $CI_REGISTRY/utils/images/ssh
+  variables:
+    GIT_STRATEGY: none
+  when: manual
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    action: stop
+  cache: []
+  before_script:
+    - chmod 400 $STAGING_SSH_KEY
+  script:
+    - ssh -i $STAGING_SSH_KEY -o StrictHostKeyChecking=no -p $STAGING_SSH_PORT $STAGING_SSH_USER@$STAGING_SSH_HOST "rm -rf /srv/pts/review/$CI_COMMIT_REF_SLUG"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
