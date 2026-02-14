@@ -1,16 +1,13 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Jost } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 
-const geistSans = Geist({
-    variable: '--font-geist-sans',
-    subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-    variable: '--font-geist-mono',
-    subsets: ['latin'],
+const jost = Jost({
+    variable: '--font-jost',
+    subsets: ['cyrillic', 'latin'],
+    weight: ['100', '300', '400', '500', '600'],
+    fallback: ['arial', 'sans-serif'],
 });
 
 export const metadata: Metadata = {
@@ -24,8 +21,10 @@ export default function RootLayout({
 }>) {
     return (
         <html lang='ru'>
-            <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+            <body
+                className={`${jost.className} webkit-font-smoothing="antialiased" -webkit-text-s'use server';antialiased`}>
                 <Providers>{children}</Providers>
+                {/* {children} */}
             </body>
         </html>
     );
