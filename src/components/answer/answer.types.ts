@@ -6,15 +6,18 @@ export interface Option {
     value: string | number;
 }
 
+export type AnswerValueType = string | number | string[] | number[];
+
 export interface AnswerProps {
     id: string;
     type: AnswerType;
-    label: string;
+    label?: string;
     options?: Option[];
-    value?: string | number | string[] | number[];
+    value?: AnswerValueType;
     placeholder?: string;
     required?: boolean;
-    onChange?: (value: unknown) => void;
+    onChange?: (value: AnswerValueType) => void;
+    className?: string;
 }
 
 export const OPTIONS: Record<AnswerType, React.ReactNode> = {
@@ -24,4 +27,5 @@ export const OPTIONS: Record<AnswerType, React.ReactNode> = {
     TEXT: null,
     DRAG: null,
     MAP: null,
+    NUMBER: null,
 };

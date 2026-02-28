@@ -1,9 +1,9 @@
 'use client';
-
-import { ChangeEvent, useState } from 'react';
-import type { AnswerProps, Option } from './answer.types';
-import { Checkbox, CheckboxGroup, Input, Radio, RadioGroup, Textarea } from '@heroui/react';
+import { ChangeEvent } from 'react';
+import type { AnswerProps } from './answer.types';
+import { Checkbox, CheckboxGroup, Input, NumberInput, Radio, RadioGroup, Textarea } from '@heroui/react';
 import { DragDrop, IDraggableItem, DropZone } from '@/components';
+import { AnswerValueType } from './answer.types';
 
 const draggableItems: IDraggableItem[] = [
     { id: 'item-1', content: 'Элемент 1', data: { type: 'task' } },
@@ -11,6 +11,9 @@ const draggableItems: IDraggableItem[] = [
     { id: 'item-3', content: 'Элемент 3', data: { type: 'note' } },
     { id: 'item-4', content: 'Элемент 4', data: { type: 'task' } },
     { id: 'item-5', content: 'Элемент 5', data: { type: 'note' } },
+    { id: 'item-6', content: 'Элемент 6', data: { type: 'task' } },
+    { id: 'item-7', content: 'Элемент 7', data: { type: 'note' } },
+    { id: 'item-8', content: 'Элемент 8', data: { type: 'task' } },
 ];
 
 const dropZones: DropZone[] = [
@@ -28,43 +31,42 @@ export const Answer = ({
     placeholder = 'Введите ответ...',
     required = false,
     onChange,
+    className,
 }: AnswerProps) => {
-    const [inputValue, setInputValue] = useState(value ?? '');
-    const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
-
-    const handleStringChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setInputValue(e.target.value);
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         onChange?.(e.target.value);
     };
 
-    const handleTextChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setInputValue(e.target.value);
-        onChange?.(e.target.value);
+    const handleNumberInputChange = (e: number | React.ChangeEvent<HTMLInputElement>) => {
+        if (typeof e === 'number') {
+            onChange?.(e);
+            return;
+        }
+        onChange?.(Number(e.target.value));
     };
 
-    const handleSingleChange = (option: Option) => {
-        setSelectedOptions([option]);
-        onChange?.(option.value);
+    const handleRadioChange = (selectedValue: string) => {
+        const selected = options.find(o => o.value.toString() === selectedValue);
+        if (selected) {
+            onChange?.(selected.value);
+        }
     };
 
-    const handleMultiplyChange = (option: Option) => {
-        const isSelected = selectedOptions.some(o => o.id === option.id);
-        const newSelected = isSelected
-            ? selectedOptions.filter(o => o.id !== option.id)
-            : [...selectedOptions, option];
-
-        setSelectedOptions(newSelected);
-        onChange?.(newSelected.map(o => o.value));
+    const handleCheckboxChange = (selectedValues: string[]) => {
+        const selected = options.filter(o => selectedValues.includes(o.value.toString()));
+        onChange?.(selected.map(o => o.value) as AnswerValueType);
     };
 
     const fields = {
         SINGLE: (
-            <RadioGroup id={id} label='Выберите один вариант ответа'>
-                {options.map((o, i) => (
-                    <Radio
-                        key={`radio-${i}-${o.label}`}
-                        value={o.value as string}
-                        onChange={() => handleSingleChange(o)}>
+            <RadioGroup
+                id={id}
+                label='Выберите один вариант ответа'
+                value={value?.toString() ?? ''}
+                onValueChange={handleRadioChange}
+                className='m-auto'>
+                {options.map(o => (
+                    <Radio key={`radio-${o.value}`} value={o.value.toString()}>
                         {o.label}
                     </Radio>
                 ))}
@@ -72,12 +74,14 @@ export const Answer = ({
         ),
 
         MULTIPLY: (
-            <CheckboxGroup id={id} label='Выберите один или несколько вариантов ответа'>
-                {options.map((o, i) => (
-                    <Checkbox
-                        key={`checkbox-${i}-${o.label}`}
-                        value={o.value as string}
-                        onChange={() => handleMultiplyChange(o)}>
+            <CheckboxGroup
+                id={id}
+                label='Выберите один или несколько вариантов ответа'
+                value={Array.isArray(value) ? value.map(v => v.toString()) : []}
+                onValueChange={handleCheckboxChange}
+                className='m-auto'>
+                {options.map(o => (
+                    <Checkbox key={`checkbox-${o.value}`} value={o.value.toString()}>
                         {o.label}
                     </Checkbox>
                 ))}
@@ -87,22 +91,40 @@ export const Answer = ({
         STRING: (
             <Input
                 id={id}
+                aria-label='Поле для ответа'
                 label={label}
                 placeholder={placeholder}
-                value={inputValue as string}
-                onChange={handleStringChange}
+                value={typeof value === 'string' ? value : ''}
+                onChange={handleInputChange}
                 required={required}
+                className='max-w-md w-full m-auto'
             />
         ),
 
         TEXT: (
             <Textarea
-                value={inputValue as string}
-                onChange={handleTextChange}
+                id={id}
+                aria-label='Поле для ответа'
+                label={label}
+                value={typeof value === 'string' ? value : ''}
+                onChange={handleInputChange}
                 placeholder={placeholder}
                 maxRows={5}
                 required={required}
+                className='max-w-md w-full m-auto'
+            />
+        ),
+
+        NUMBER: (
+            <NumberInput
                 id={id}
+                aria-label='Поле для ответа'
+                label={label}
+                placeholder={placeholder}
+                value={typeof value === 'number' ? value : undefined}
+                onChange={handleNumberInputChange}
+                required={required}
+                className='max-w-md w-full m-auto'
             />
         ),
 
@@ -110,5 +132,5 @@ export const Answer = ({
         DRAG: <DragDrop draggableItems={draggableItems} dropZones={dropZones} />,
     };
 
-    return fields[type];
+    return <div className={className}>{fields[type]}</div>;
 };

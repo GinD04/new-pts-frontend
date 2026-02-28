@@ -1,13 +1,13 @@
 import { gql, TypedDocumentNode } from '@apollo/client';
 
-type GetAllTestingsQuery = {
+export type GetAllTestingsQuery = {
     testing: [
         {
             __typename: 'Testing';
-            duration: number;
-            id: number;
-            startTime: string;
-            title: string;
+            duration?: number;
+            id?: number;
+            startTime?: string;
+            title?: string;
         },
     ];
 };
@@ -18,9 +18,9 @@ export const GET_ALL_TESTINGS: TypedDocumentNode<GetAllTestingsQuery, GetAllTest
     query GetAllTestingsQuery {
         testing {
             duration
-            id
             startTime
             title
+            id
         }
     }
 `;

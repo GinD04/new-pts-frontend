@@ -9,13 +9,18 @@ export interface ITestInfo {
 export interface IQuestion {
     id?: number;
     text?: string;
-    answersType?: AnswerType;
+    answerType: AnswerType;
     answers?: string[];
+}
+
+export interface IAnswerData {
+    answer: string;
+    order: number;
 }
 
 export interface IAnswer {
     questionId?: number;
-    answers?: string[];
+    answers?: IAnswerData[];
 }
 
 export interface ITestWithQuestions extends ITestInfo {
@@ -29,6 +34,7 @@ export const ANSWER_TYPE = {
     TEXT: 'TEXT',
     MAP: 'MAP',
     DRAG: 'DRAG',
+    NUMBER: 'NUMBER',
 } as const;
 
 export type AnswerType = (typeof ANSWER_TYPE)[keyof typeof ANSWER_TYPE];
