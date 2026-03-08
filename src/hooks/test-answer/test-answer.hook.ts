@@ -1,7 +1,7 @@
 import { useTestStore } from '@/store';
 import { UseTestAnswerProps, UseTestAnswerReturn } from './test-answer.types';
 import { useCallback, useMemo } from 'react';
-import { IAnswerData } from '@/shared';
+import { IAnswerData, isArrayAnswerData } from '@/shared';
 import { AnswerValueType } from '@/components';
 
 export const useTestAnswer = ({ answerType, questionId }: UseTestAnswerProps): UseTestAnswerReturn => {
@@ -12,30 +12,38 @@ export const useTestAnswer = ({ answerType, questionId }: UseTestAnswerProps): U
     }, [answers, questionId]);
 
     const value = useMemo((): AnswerValueType => {
-        if (!currentAnswer?.answers || currentAnswer.answers.length === 0) {
+        if (!currentAnswer?.answer || currentAnswer.answer.length === 0) {
             return answerType === 'MULTIPLY' ? [] : '';
         }
 
-        const answerValues = currentAnswer.answers.map(a => a.answer);
+        if (answerType === 'DRAG' || 'MAP') {
+            return currentAnswer.answer;
+        }
+
+        const answerValues = currentAnswer.answer.map(a => a.answer);
+
+        if (answerType === 'NUMBER') {
+            return Number(answerValues[0] ?? 0);
+        }
 
         return answerType === 'MULTIPLY' ? answerValues : (answerValues[0] ?? '');
     }, [currentAnswer, answerType]);
 
     const hasAnswer = useMemo(() => {
-        return !!currentAnswer?.answers && currentAnswer.answers.length > 0;
+        return !!currentAnswer?.answer && currentAnswer.answer.length > 0;
     }, [currentAnswer]);
 
     const convertToAnswerData = useCallback((v: AnswerValueType): IAnswerData[] => {
         if (typeof v === 'string') {
-            return v ? [{ answer: v, order: Date.now() }] : [];
+            return v ? [{ answer: v, order: Date.now().toString() }] : [];
         }
         if (typeof v === 'number') {
-            return [{ answer: v.toString(), order: Date.now() }];
+            return [{ answer: v.toString(), order: Date.now().toString() }];
         }
         if (Array.isArray(v)) {
             return v.map(item => ({
                 answer: item.toString(),
-                order: Date.now(),
+                order: Date.now().toString(),
             }));
         }
         return [];
@@ -43,14 +51,14 @@ export const useTestAnswer = ({ answerType, questionId }: UseTestAnswerProps): U
 
     const saveAnswer = useCallback(
         (v: AnswerValueType) => {
-            const answerData = convertToAnswerData(v);
+            const answerData = isArrayAnswerData(v) ? v : convertToAnswerData(v);
 
             if (currentAnswer) {
                 updateAnswer(questionId, answerData);
             } else {
                 addAnswer({
                     questionId,
-                    answers: answerData,
+                    answer: answerData,
                 });
             }
         },

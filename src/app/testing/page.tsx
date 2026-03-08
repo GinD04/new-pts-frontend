@@ -1,13 +1,12 @@
 'use client';
 import { H4, TestingCard } from '@/components';
+import { useGetAllTesting } from '@/gql';
 import { formatDate, formatDuration } from '@/shared';
-import { GET_ALL_TESTINGS } from '@/shemas';
-import { useQuery } from '@apollo/client/react';
 import { CircularProgress, Divider } from '@heroui/react';
 import { useRouter } from 'next/navigation';
 
 export default function AllTestingsPage() {
-    const { loading, data } = useQuery(GET_ALL_TESTINGS);
+    const { loading, data } = useGetAllTesting();
     const router = useRouter();
 
     const handlePressTestingCard = (id?: number) => {

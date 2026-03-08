@@ -6,21 +6,29 @@ export interface ITestInfo {
     questions?: IQuestion[];
 }
 
+export interface IZoneInfo {
+    max?: number;
+    min?: number;
+    name: string;
+}
+
 export interface IQuestion {
     id?: number;
     text?: string;
     answerType: AnswerType;
     answers?: string[];
+    zones?: IZoneInfo[];
 }
 
 export interface IAnswerData {
     answer: string;
-    order: number;
+    order?: string;
+    zone?: string;
 }
 
 export interface IAnswer {
     questionId?: number;
-    answers?: IAnswerData[];
+    answer?: IAnswerData[];
 }
 
 export interface ITestWithQuestions extends ITestInfo {

@@ -3,13 +3,18 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useTestStore } from '@/store';
 import { Button, CircularProgress, Divider, Pagination } from '@heroui/react';
-import { Answer, H5, Option, AnswerValueType } from '@/components';
+import { Answer, H5, Option, AnswerValueType, Timer } from '@/components';
 import { useTestAnswer } from '@/hooks';
-import { ArrowRightIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { AnswerInput, useSaveAnswer } from '@/gql';
 
 export default function QuestionPage() {
     const { 'question-number': questionNumber } = useParams<{ 'question-number': string }>();
-    const { totalQuestions, questions, _hasHydrated } = useTestStore();
+    const { 'testing-id': testingId } = useParams<{ 'testing-id': string }>();
+    const { totalQuestions, questions, _hasHydrated, duration, answers, clearTest } = useTestStore();
+
+    const [saveAllAnswers] = useSaveAnswer();
+
     const router = useRouter();
 
     const currentQuestion = questions[+questionNumber - 1];
@@ -43,19 +48,52 @@ export default function QuestionPage() {
 
     const handleChangeValue = (v: AnswerValueType) => {
         setLocalValue(v);
+        // console.log(v)
+    };
+
+    const handleBack = () => {
+        router.push(`/testing/${testingId}`);
+    };
+
+    const handleFinishTest = () => {
+        saveAnswer(localValue);
+        saveAllAnswers({
+            variables: {
+                answers: answers.map(a => ({
+                    ...a,
+                    questionId: Number(a.questionId),
+                })) as AnswerInput[],
+                studentId: 1,
+                testingId: Number(testingId),
+            },
+        });
+        clearTest();
+        router.push('/testing');
     };
 
     return (
         <>
+            <header className='w-full max-w-xl flex justify-between items-center'>
+                <Button
+                    onPress={handleBack}
+                    startContent={<ArrowLeftIcon className='size-4' />}
+                    color='default'
+                    variant='light'>
+                    Назад
+                </Button>
+                <Timer initialSeconds={duration} autoStart />
+            </header>
             <H5>{currentQuestion.text}</H5>
             <Divider />
             <Answer
+                key={questionNumber}
                 id={questionNumber}
                 type={currentQuestion.answerType}
                 options={options}
                 value={localValue}
                 onChange={handleChangeValue}
-                className='min-h-40 max-w-2xl w-full flex align-middle'
+                zones={currentQuestion.zones}
+                className='min-h-40 max-w-3xl max-h-9/12 w-full flex align-middle'
             />
             <div className='flex flex-row gap-4'>
                 <Pagination
@@ -69,6 +107,7 @@ export default function QuestionPage() {
                     <Button
                         endContent={<ArrowRightIcon className='size-4' />}
                         color='secondary'
+                        onPress={handleFinishTest}
                         className='w-min animate-in fade-in duration-300'>
                         Завершить
                     </Button>

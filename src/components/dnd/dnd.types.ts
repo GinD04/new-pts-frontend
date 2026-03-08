@@ -34,6 +34,8 @@ export interface DropZone {
     id: string;
     title?: string;
     accepts?: string[];
+    maxItems?: number;
+    minItems?: number;
 }
 
 export interface DragDropComponentProps {
@@ -43,6 +45,17 @@ export interface DragDropComponentProps {
     renderItem?: (item: IDraggableItem, isDragging?: boolean) => React.ReactNode;
     renderDropZone?: (zone: DropZone, items: IDraggableItem[]) => React.ReactNode;
     className?: string;
+    value?: Record<string, string | null>;
+    onChange?: (locations: Record<string, string | null>) => void;
+}
+
+export interface MapComponentProps {
+    items: IDraggableItem[];
+    zones: DropZone[];
+    onItemMove?: (itemId: string, fromZone: string | null, toZone: string | null) => void;
+    className?: string;
+    value?: Record<string, string | null>;
+    onChange?: (locations: Record<string, string | null>) => void;
 }
 
 export interface SortableItemProps {
@@ -54,6 +67,12 @@ export interface DroppableZoneProps {
     zone: DropZone;
     items: IDraggableItem[];
     renderItem?: (item: IDraggableItem, isDragging?: boolean) => React.ReactNode;
-    renderDropZone?: (zone: DropZone, items: IDraggableItem[]) => React.ReactNode;
-    isSortable?: boolean;
+    renderDropZone?: (
+        zone: DropZone,
+        items: IDraggableItem[],
+        isFull?: boolean,
+        required?: boolean,
+    ) => React.ReactNode;
+    required?: boolean;
+    isZoneFull?: boolean;
 }

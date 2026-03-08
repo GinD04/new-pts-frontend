@@ -1,41 +1,39 @@
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { DraggableItem } from './draggable-item.component';
-import { DroppableZoneProps, IDraggableItem } from './dnd.types';
-import { Body2, H6 } from '@/components';
-
-const getItems = (
-    items: IDraggableItem[],
-    renderItem?: (item: IDraggableItem, isDragging?: boolean) => React.ReactNode,
-) => (
-    <div className='flex flex-col items-center border rounded-lg p-3 w-full min-h-full select-none'>
-        {items.length === 0 ? (
-            <Body2 className='opacity-70'>Перетащите элементы сюда</Body2>
-        ) : (
-            items.map(item => <DraggableItem key={item.id} item={item} renderItem={renderItem} />)
-        )}
-    </div>
-);
+import { DroppableZoneProps } from './dnd.types';
+import { H6 } from '@/components';
+import { getItems } from './drag-items.utils';
 
 export const DroppableZone: React.FC<DroppableZoneProps> = ({
     zone,
     items,
     renderItem,
     renderDropZone,
-    isSortable = false,
+    required = false,
+    isZoneFull = false,
 }) => {
-    const { setNodeRef } = useSortable({ id: zone.id });
+    const isFull = isZoneFull ?? !!(zone.maxItems && items.length >= zone.maxItems);
+
+    const { setNodeRef } = useSortable({
+        id: zone.id,
+        disabled: isFull,
+    });
 
     if (renderDropZone) {
-        return <div ref={setNodeRef}>{renderDropZone(zone, items)}</div>;
+        return (
+            <div ref={setNodeRef} className=''>
+                {renderDropZone(zone, items, isFull, required)}
+            </div>
+        );
     }
 
     return (
-        <div ref={setNodeRef} className='flex flex-col items-center min-w-3xs h-full'>
+        <div ref={setNodeRef} className='flex flex-col items-center min-w-3xs max-w-sm h-full'>
             <H6>{zone.title || zone.id}</H6>
-            <SortableContext
-                items={items.map(item => item.id)}
-                strategy={isSortable ? verticalListSortingStrategy : undefined}>
-                {getItems(items, renderItem)}
+            <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
+                <div
+                    className={`flex flex-row gap-2 flex-wrap items-center border ${isFull && 'border-success'} ${required && 'border-danger'} rounded-lg p-3 w-full select-none`}>
+                    {getItems(items, renderItem)}
+                </div>
             </SortableContext>
         </div>
     );

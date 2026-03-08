@@ -1,4 +1,4 @@
-import { AnswerType } from '@/shared';
+import { AnswerType, IAnswerData, IZoneInfo } from '@/shared';
 
 export interface Option {
     id: string | number;
@@ -6,7 +6,7 @@ export interface Option {
     value: string | number;
 }
 
-export type AnswerValueType = string | number | string[] | number[];
+export type AnswerValueType = string | number | string[] | number[] | IAnswerData[];
 
 export interface AnswerProps {
     id: string;
@@ -18,6 +18,7 @@ export interface AnswerProps {
     required?: boolean;
     onChange?: (value: AnswerValueType) => void;
     className?: string;
+    zones?: IZoneInfo[];
 }
 
 export const OPTIONS: Record<AnswerType, React.ReactNode> = {

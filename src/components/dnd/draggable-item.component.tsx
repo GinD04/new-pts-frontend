@@ -9,6 +9,7 @@ export const DraggableItem: React.FC<SortableItemProps> = ({ item, renderItem })
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : 1,
+        maxWidth: '100%',
     };
 
     return (
@@ -16,7 +17,7 @@ export const DraggableItem: React.FC<SortableItemProps> = ({ item, renderItem })
             {renderItem ? (
                 renderItem(item, isDragging)
             ) : (
-                <div className='rounded-lg p-1 bg-gray-100 mt-0.5'>{item.content}</div>
+                <div className='rounded-lg p-1 bg-gray-100 mt-0.5 max-w-full w-fit truncate'>{item.content}</div>
             )}
         </div>
     );

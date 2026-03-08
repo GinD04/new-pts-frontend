@@ -13,14 +13,14 @@ export const SourceArea: React.FC<{
     return (
         <div
             ref={setNodeRef}
-            className={`flex flex-col gap-2 p-4 justify-around rounded-lg shadow-neutral-400 shadow-lg transition-colors`}>
+            className={`max-w-sm max-h-sm overflow-y-hidden flex flex-col gap-2 p-4 rounded-lg shadow-neutral-400 shadow-lg transition-colors`}>
             <H6 className='flex gap-4 items-center'>
                 Доступные элементы
                 <Body1 className='border rounded-4xl px-2' color='primary'>
                     {items.length}
                 </Body1>
             </H6>
-            <div className='p-4 h-full'>
+            <div className='p-4 h-full min-h-4 flex flex-wrap gap-2 max-h-xs overflow-y-auto'>
                 {items.length > 0 ? (
                     <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
                         {items.map(item => (

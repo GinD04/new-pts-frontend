@@ -2,25 +2,10 @@
 import { ChangeEvent } from 'react';
 import type { AnswerProps } from './answer.types';
 import { Checkbox, CheckboxGroup, Input, NumberInput, Radio, RadioGroup, Textarea } from '@heroui/react';
-import { DragDrop, IDraggableItem, DropZone } from '@/components';
+import { DragDrop, MapComponent } from '@/components';
 import { AnswerValueType } from './answer.types';
-
-const draggableItems: IDraggableItem[] = [
-    { id: 'item-1', content: 'Элемент 1', data: { type: 'task' } },
-    { id: 'item-2', content: 'Элемент 2', data: { type: 'task' } },
-    { id: 'item-3', content: 'Элемент 3', data: { type: 'note' } },
-    { id: 'item-4', content: 'Элемент 4', data: { type: 'task' } },
-    { id: 'item-5', content: 'Элемент 5', data: { type: 'note' } },
-    { id: 'item-6', content: 'Элемент 6', data: { type: 'task' } },
-    { id: 'item-7', content: 'Элемент 7', data: { type: 'note' } },
-    { id: 'item-8', content: 'Элемент 8', data: { type: 'task' } },
-];
-
-const dropZones: DropZone[] = [
-    { id: 'zone-1', title: 'Зона 1' },
-    { id: 'zone-2', title: 'Зона 2' },
-    { id: 'zone-3', title: 'Зона 3' },
-];
+import { getDragItems, getDropZones } from './answer.utils';
+import { fromAnswerFormat, isArrayAnswerData, toAnswerFormat } from '@/shared';
 
 export const Answer = ({
     id,
@@ -32,7 +17,11 @@ export const Answer = ({
     required = false,
     onChange,
     className,
+    zones = [],
 }: AnswerProps) => {
+    const dragItems = getDragItems(options);
+    const dropZones = getDropZones(zones);
+
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         onChange?.(e.target.value);
     };
@@ -55,6 +44,10 @@ export const Answer = ({
     const handleCheckboxChange = (selectedValues: string[]) => {
         const selected = options.filter(o => selectedValues.includes(o.value.toString()));
         onChange?.(selected.map(o => o.value) as AnswerValueType);
+    };
+
+    const handleDragChange = (locations: Record<string, string | null>) => {
+        onChange?.(toAnswerFormat(locations, dropZones));
     };
 
     const fields = {
@@ -128,8 +121,22 @@ export const Answer = ({
             />
         ),
 
-        MAP: null,
-        DRAG: <DragDrop draggableItems={draggableItems} dropZones={dropZones} />,
+        MAP: (
+            <MapComponent
+                items={dragItems}
+                zones={dropZones}
+                value={isArrayAnswerData(value) ? fromAnswerFormat(value, dragItems, dropZones) : undefined}
+                onChange={handleDragChange}
+            />
+        ),
+        DRAG: (
+            <DragDrop
+                draggableItems={dragItems}
+                dropZones={dropZones}
+                value={isArrayAnswerData(value) ? fromAnswerFormat(value, dragItems, dropZones) : undefined}
+                onChange={handleDragChange}
+            />
+        ),
     };
 
     return <div className={className}>{fields[type]}</div>;

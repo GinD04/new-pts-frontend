@@ -23,14 +23,28 @@ export const DragDrop: React.FC<DragDropComponentProps> = ({
     renderItem,
     renderDropZone,
     className = '',
+    value,
+    onChange,
 }) => {
-    const [itemLocations, setItemLocations] = useState<Record<string, string | null>>(() => {
+    const getInitialLocations = () => {
         const initial: Record<string, string | null> = {};
         draggableItems.forEach(item => {
             initial[item.id] = null;
         });
         return initial;
-    });
+    };
+
+    const [internalLocations, setInternalLocations] = useState<Record<string, string | null>>(
+        () => value ?? getInitialLocations(),
+    );
+
+    const itemLocations = value ?? internalLocations;
+
+    const setItemLocations = (updater: (prev: Record<string, string | null>) => Record<string, string | null>) => {
+        const next = updater(itemLocations);
+        setInternalLocations(next);
+        onChange?.(next);
+    };
 
     const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -70,6 +84,16 @@ export const DragDrop: React.FC<DragDropComponentProps> = ({
             targetZoneId = isDropZone ? overId : (itemLocations[overId] ?? null);
         }
 
+        if (targetZoneId !== null) {
+            const targetZone = dropZones.find(zone => zone.id === targetZoneId);
+            const targetItems = getItemsForZone(targetZoneId);
+
+            if (targetZone?.maxItems !== undefined && targetItems.length >= targetZone.maxItems) {
+                setActiveId(null);
+                return;
+            }
+        }
+
         const currentZoneId = itemLocations[activeItemId];
 
         if (currentZoneId !== targetZoneId) {
@@ -102,21 +126,18 @@ export const DragDrop: React.FC<DragDropComponentProps> = ({
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}>
             <SortableContext items={allIds} strategy={verticalListSortingStrategy}>
-                <div className={`flex h-fit max-h-full overflow-hidden w-full p-2 gap-4 md:p-4 ${className}`}>
+                <div className={`flex h-fit max-h-full overflow-auto w-full p-2 gap-4 md:p-4 ${className}`}>
                     <SourceArea items={getItemsForZone(null)} renderItem={renderItem} />
-
-                    <div className='flex-1'>
-                        <div className='flex flex-col gap-4'>
-                            {dropZones.map(zone => (
-                                <DroppableZone
-                                    key={zone.id}
-                                    zone={zone}
-                                    items={getItemsForZone(zone.id)}
-                                    renderItem={renderItem}
-                                    renderDropZone={renderDropZone}
-                                />
-                            ))}
-                        </div>
+                    <div className='flex flex-col gap-4'>
+                        {dropZones.map(zone => (
+                            <DroppableZone
+                                key={zone.id}
+                                zone={zone}
+                                items={getItemsForZone(zone.id)}
+                                renderItem={renderItem}
+                                renderDropZone={renderDropZone}
+                            />
+                        ))}
                     </div>
                 </div>
             </SortableContext>

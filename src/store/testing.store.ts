@@ -7,11 +7,13 @@ type TestState = {
     answers: IAnswer[];
     questions: IQuestion[];
     totalQuestions: number;
+    duration?: number;
 
     _hasHydrated: boolean;
     setHasHydrated: (state: boolean) => void;
 
     setCurrentQuestionNumber: (index: number) => void;
+    setDuration: (duration: number) => void;
     setQuestions: (questions: IQuestion[]) => void;
     addAnswer: (answer: IAnswer) => void;
     updateAnswer: (questionId: number, answer: IAnswerData[]) => void;
@@ -29,6 +31,7 @@ export const useTestStore = create<TestState>()(
             questions: [],
             totalQuestions: 0,
             _hasHydrated: false,
+            duration: undefined,
 
             setCurrentQuestionNumber: index => set({ currentQuestionNumber: index }),
 
@@ -37,6 +40,8 @@ export const useTestStore = create<TestState>()(
                     questions: questions,
                     totalQuestions: questions.length,
                 }),
+
+            setDuration: duration => set({ duration }),
 
             addAnswer: answer =>
                 set(state => ({
