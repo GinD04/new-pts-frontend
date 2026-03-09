@@ -13,7 +13,7 @@ workflow:
 
 
 default:
-  image: node:23.6.1-alpine
+  image: node:24.14.0-alpine
   cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
