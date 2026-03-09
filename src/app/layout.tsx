@@ -24,7 +24,6 @@ export default function RootLayout({
             <body
                 className={`${jost.className} webkit-font-smoothing="antialiased" -webkit-text-s'use server';antialiased`}>
                 <Providers>{children}</Providers>
-                {/* {children} */}
             </body>
         </html>
     );

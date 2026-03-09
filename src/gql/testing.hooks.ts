@@ -7,8 +7,8 @@ import {
     GetTestingByIdQuery,
     SAVE_ANSWER,
     SaveStudentAnswerMutation,
+    SaveStudentAnswerVariables,
 } from './schemas';
-import { SaveStudentAnswerVariables } from './schemas';
 
 export const useGetAllTesting = createQueryHook<GetAllTestingsQuery>(GET_ALL_TESTINGS);
 

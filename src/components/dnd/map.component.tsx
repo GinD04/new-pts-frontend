@@ -17,7 +17,7 @@ export const MapComponent: FC<MapComponentProps> = ({
 }) => {
     const renderDropZone = (zone: DropZone, items: IDraggableItem[], required?: boolean, isFull?: boolean) => (
         <div className='flex gap-2 max-w-3xs w-fit'>
-            <Body1 className='text-nowrap'>{zone.title || zone.id}</Body1>
+            <Body1 className='text-nowrap'>{zone.title ?? zone.id}</Body1>
             <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
                 <div
                     className={`flex flex-row gap-2 flex-wrap items-center border  ${isFull && 'border-success'} ${required && 'border-danger'} rounded-lg p-1 w-fit max-w-3xs min-h-full select-none`}>

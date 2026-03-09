@@ -50,6 +50,12 @@ export const Answer = ({
         onChange?.(toAnswerFormat(locations, dropZones));
     };
 
+    const getMultiplyValue = (value?: AnswerValueType): string[] => {
+        if (isArrayAnswerData(value)) return value.map(v => v.answer);
+        if (Array.isArray(value)) return value.map(v => v.toString());
+        return [];
+    };
+
     const fields = {
         SINGLE: (
             <RadioGroup
@@ -70,7 +76,7 @@ export const Answer = ({
             <CheckboxGroup
                 id={id}
                 label='Выберите один или несколько вариантов ответа'
-                value={Array.isArray(value) ? value.map(v => v.toString()) : []}
+                value={getMultiplyValue(value)}
                 onValueChange={handleCheckboxChange}
                 className='m-auto'>
                 {options.map(o => (

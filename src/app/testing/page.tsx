@@ -20,7 +20,7 @@ export default function AllTestingsPage() {
             <div className='max-w-[1200px] max-h-3/4 flex flex-wrap items-center justify-center gap-4 px-8'>
                 {(data?.testing ?? []).map((testing, id) => (
                     <TestingCard
-                        key={id}
+                        key={`card-${id}`}
                         title={testing.title}
                         duration={formatDuration(testing.duration ?? 0)}
                         startTime={formatDate(testing.startTime ?? '')}

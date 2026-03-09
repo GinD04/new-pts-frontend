@@ -1,7 +1,7 @@
 import { useTestStore } from '@/store';
 import { UseTestAnswerProps, UseTestAnswerReturn } from './test-answer.types';
 import { useCallback, useMemo } from 'react';
-import { IAnswerData, isArrayAnswerData } from '@/shared';
+import { IAnswerData, isAnswerData, isArrayAnswerData } from '@/shared';
 import { AnswerValueType } from '@/components';
 
 export const useTestAnswer = ({ answerType, questionId }: UseTestAnswerProps): UseTestAnswerReturn => {
@@ -42,7 +42,7 @@ export const useTestAnswer = ({ answerType, questionId }: UseTestAnswerProps): U
         }
         if (Array.isArray(v)) {
             return v.map(item => ({
-                answer: item.toString(),
+                answer: isAnswerData(item) ? item.answer : item.toString(),
                 order: Date.now().toString(),
             }));
         }

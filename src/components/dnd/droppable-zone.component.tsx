@@ -28,7 +28,7 @@ export const DroppableZone: React.FC<DroppableZoneProps> = ({
 
     return (
         <div ref={setNodeRef} className='flex flex-col items-center min-w-3xs max-w-sm h-full'>
-            <H6>{zone.title || zone.id}</H6>
+            <H6>{zone.title ?? zone.id}</H6>
             <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
                 <div
                     className={`flex flex-row gap-2 flex-wrap items-center border ${isFull && 'border-success'} ${required && 'border-danger'} rounded-lg p-3 w-full select-none`}>

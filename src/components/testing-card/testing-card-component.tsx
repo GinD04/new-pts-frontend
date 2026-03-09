@@ -1,8 +1,7 @@
-import { ClockIcon } from '@heroicons/react/24/outline';
 import { Card, CardBody, CardFooter, CardHeader } from '@heroui/react';
 import { Body1, H6 } from '@/components';
 import { TestingCardProps } from './testing-card.types';
-import { CalendarDateRangeIcon } from '@heroicons/react/24/outline';
+import { CalendarDateRangeIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 export const TestingCard = ({ title, duration, startTime, onPress }: TestingCardProps) => (
     <div className='p-0.5 rounded-xl bg-linear-to-tl from-primary to-secondary'>
