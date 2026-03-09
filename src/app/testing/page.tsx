@@ -18,9 +18,9 @@ export default function AllTestingsPage() {
             <H4>Текущие тестирования</H4>
             <Divider />
             <div className='max-w-[1200px] max-h-3/4 flex flex-wrap items-center justify-center gap-4 px-8'>
-                {(data?.testing ?? []).map((testing, id) => (
+                {(data?.testing ?? []).map(testing => (
                     <TestingCard
-                        key={`card-${id}`}
+                        key={`card-${testing.id}`}
                         title={testing.title}
                         duration={formatDuration(testing.duration ?? 0)}
                         startTime={formatDate(testing.startTime ?? '')}
