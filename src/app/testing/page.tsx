@@ -2,19 +2,36 @@
 import { H4, TestingCard } from '@/components';
 import { useGetAllTesting } from '@/gql';
 import { formatDate, formatDuration } from '@/shared';
-import { CircularProgress, Divider } from '@heroui/react';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { Button, CircularProgress, Divider } from '@heroui/react';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store';
 
 export default function AllTestingsPage() {
     const { loading, data } = useGetAllTesting();
+    const { clear } = useAuthStore();
     const router = useRouter();
 
     const handlePressTestingCard = (id?: number) => {
-        if (id) router.push(`testing/${id}`);
+        if (id) router.push(`${id}`);
+    };
+
+    const handleLogout = () => {
+        clear();
+        router.push('/login');
     };
 
     return (
         <>
+            <header className='w-full max-w-xl flex justify-between items-center'>
+                <Button
+                    onPress={handleLogout}
+                    startContent={<ArrowLeftIcon className='size-4' />}
+                    color='default'
+                    variant='light'>
+                    Выйти
+                </Button>
+            </header>
             <H4>Текущие тестирования</H4>
             <Divider />
             <div className='max-w-[1200px] max-h-3/4 flex flex-wrap items-center justify-center gap-4 px-8'>

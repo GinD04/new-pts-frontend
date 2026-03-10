@@ -32,7 +32,7 @@ export default function TestingPage() {
     }
 
     const handleStartTest = () => {
-        if (data?.testingById.questions.length !== 0) router.push(`${testingId}/1`);
+        if (data?.testingById.questions.length !== 0) router.push(`1`);
     };
 
     const handleBack = () => {
