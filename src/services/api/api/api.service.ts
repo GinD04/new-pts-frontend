@@ -1,3 +1,4 @@
+import { useAuthStore } from '@/store';
 import axios from 'axios';
 import type { AxiosResponse, AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 
@@ -9,13 +10,13 @@ export interface ApiServiceOptions {
     onUnauthorized?: () => void;
 }
 
-// const clearAuthData = () => {
-//     useAuthStore.getState().clear();
-//     redirect(ROUTES.LOGIN);
-// };
+const clearAuthData = () => {
+    useAuthStore.getState().clear();
+    window.location.href = '/login';
+};
 
 export class ApiServiceController {
-    private instance: AxiosInstance;
+    private readonly instance: AxiosInstance;
 
     constructor(options?: ApiServiceOptions) {
         this.instance = axios.create({
@@ -32,7 +33,7 @@ export class ApiServiceController {
         );
     }
 
-    private handleResponseError = (error: AxiosError, onUnauthorized?: () => void) => {
+    private readonly handleResponseError = (error: AxiosError, onUnauthorized?: () => void) => {
         if (error.response?.status === 401) {
             if (onUnauthorized) {
                 onUnauthorized();
@@ -62,5 +63,5 @@ export class ApiServiceController {
 
 export const apiService = new ApiServiceController({
     baseURL: BASE_URL,
-    // onUnauthorized: clearAuthData,
+    onUnauthorized: clearAuthData,
 });
