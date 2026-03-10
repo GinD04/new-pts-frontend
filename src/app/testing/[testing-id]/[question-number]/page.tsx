@@ -7,11 +7,13 @@ import { Answer, H5, Option, AnswerValueType, Timer } from '@/components';
 import { useTestAnswer } from '@/hooks';
 import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { AnswerInput, useSaveAnswer } from '@/gql';
+import { useAuthStore } from '@/store/auth';
 
 export default function QuestionPage() {
     const { 'question-number': questionNumber } = useParams<{ 'question-number': string }>();
     const { 'testing-id': testingId } = useParams<{ 'testing-id': string }>();
     const { totalQuestions, questions, _hasHydrated, duration, answers, clearTest } = useTestStore();
+    const { user } = useAuthStore();
 
     const [saveAllAnswers] = useSaveAnswer();
 
@@ -43,12 +45,11 @@ export default function QuestionPage() {
 
     const handleChangeQuestion = (q: number) => {
         saveAnswer(localValue);
-        router.push(`${q}`);
+        router.push(`/testing/${testingId}/${q}`);
     };
 
     const handleChangeValue = (v: AnswerValueType) => {
         setLocalValue(v);
-        // console.log(v)
     };
 
     const handleBack = () => {
@@ -63,7 +64,7 @@ export default function QuestionPage() {
                     ...a,
                     questionId: Number(a.questionId),
                 })) as AnswerInput[],
-                studentId: 1,
+                studentId: user?.id ?? 0,
                 testingId: Number(testingId),
             },
         });
