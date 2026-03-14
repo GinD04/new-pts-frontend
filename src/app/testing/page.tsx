@@ -3,9 +3,10 @@ import { H4, TestingCard } from '@/components';
 import { useGetAllTesting } from '@/gql';
 import { formatDate, formatDuration } from '@/shared';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import { Button, CircularProgress, Divider } from '@heroui/react';
+import { addToast, Button, CircularProgress, Divider } from '@heroui/react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store';
+import { authService } from '@/services';
 
 export default function AllTestingsPage() {
     const { loading, data } = useGetAllTesting();
@@ -18,7 +19,17 @@ export default function AllTestingsPage() {
 
     const handleLogout = () => {
         clear();
-        router.push('/login');
+        authService
+            .logout()
+            .then(() => router.push('/login'))
+            .catch(error =>
+                addToast({
+                    title: 'Ошибка',
+                    description: error.message,
+                    variant: 'solid',
+                    color: 'danger',
+                }),
+            );
     };
 
     return (
