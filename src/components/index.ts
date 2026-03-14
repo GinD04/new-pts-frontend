@@ -4,3 +4,4 @@ export * from './dnd';
 export * from './testing-card';
 export * from './timer';
 export * from './password';
+export * from './modal';
