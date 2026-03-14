@@ -1,5 +1,5 @@
 'use client';
 
 export default function Home() {
-    return <main className='w-full h-full'>{/*<MainLayout />*/}</main>;
+    return <main className='w-full h-full'></main>;
 }
