@@ -3,8 +3,8 @@ import { ReactNode } from 'react';
 
 export interface IObserver {
     functions: ((option: AnyModalOptions) => void)[];
-    subscribe: (func: { (options: AnyModalOptions): void }) => void;
-    unsubscribe: (func: { (options: AnyModalOptions): void }) => void;
+    subscribe: (func: (options: AnyModalOptions) => void) => void;
+    unsubscribe: (func: (options: AnyModalOptions) => void) => void;
 }
 
 export interface IModalOptions {

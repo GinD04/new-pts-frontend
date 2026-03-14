@@ -18,7 +18,7 @@ export class ModalService implements IObserver {
         this.functions.splice(this.functions.indexOf(func), 1);
     };
 
-    private notify = (options: AnyModalOptions) => {
+    private readonly notify = (options: AnyModalOptions) => {
         this.functions.forEach(func => func(options));
     };
 
