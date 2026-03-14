@@ -1,6 +1,5 @@
 import {
     IConfirmOptions,
-    IModalOptions,
     IObserver,
     ICustomModalOptions,
     MODAL_TYPE,

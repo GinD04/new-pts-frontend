@@ -1,7 +1,7 @@
 import { modalService } from '@/services';
-import { AnyModalOptions, IModalOptions, MODAL_TYPE, ModalType } from '@/shared';
+import { AnyModalOptions, MODAL_TYPE, ModalType } from '@/shared';
 import { ReactNode, useEffect, useState, useCallback } from 'react';
-import { Modal as HerouiModal, ModalContent, useDisclosure } from '@heroui/react';
+import { Modal as HerouiModal, ModalContent } from '@heroui/react';
 import { CustomModal } from './custom-modal.component';
 import { ConfirmModal } from './confirm-modal.component';
 import { FormModal } from './form-modal.component';
