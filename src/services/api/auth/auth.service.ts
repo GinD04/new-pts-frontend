@@ -16,4 +16,9 @@ export const authService = {
         });
         return response.data;
     },
+
+    logout: async () => {
+        const response = await apiService.post('/api/logout');
+        return response.data;
+    },
 };

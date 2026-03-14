@@ -21,6 +21,7 @@ export class ApiServiceController {
     constructor(options?: ApiServiceOptions) {
         this.instance = axios.create({
             baseURL: options?.baseURL ?? '',
+            withCredentials: true,
             headers: {
                 'Content-Type': 'application/json',
                 ...options?.defaultHeaders,
