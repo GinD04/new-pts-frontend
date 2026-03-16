@@ -1,17 +1,20 @@
 'use client';
 
-import { useTestStore } from '@/store';
+import { useTestStore, useAuthStore } from '@/store';
 import { useEffect } from 'react';
 import { Text } from '@/components';
 import { useParams, useRouter } from 'next/navigation';
 import { Button, CircularProgress, Divider } from '@heroui/react';
 import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/solid';
 import { useGetTestingById } from '@/gql';
+import { useSaveAnswer } from '@/gql';
 
 export default function TestingPage() {
     const { 'testing-id': testingId } = useParams<{ 'testing-id': string }>();
-    const { setQuestions, setDuration } = useTestStore();
+    const { setQuestions, setDuration, setGlobalAnswers, setGlobalZones } = useTestStore();
+    const { user } = useAuthStore();
     const router = useRouter();
+    const [saveAllAnswers] = useSaveAnswer();
 
     const { loading, data } = useGetTestingById(
         { id: testingId },
@@ -24,14 +27,22 @@ export default function TestingPage() {
         if (data?.testingById.questions) {
             setQuestions(data?.testingById.questions);
             setDuration(data?.testingById.duration);
+            setGlobalAnswers(data?.testingById.globalAnswers);
+            setGlobalZones(data?.testingById.globalZones);
         }
-    }, [data, setQuestions, setDuration]);
+    }, [data, setQuestions, setDuration, setGlobalAnswers, setGlobalZones]);
 
     if (loading) {
         return <CircularProgress />;
     }
 
     const handleStartTest = () => {
+        saveAllAnswers({
+            variables: {
+                studentId: user?.id ?? 0,
+                testingId: Number(testingId),
+            },
+        });
         if (data?.testingById.questions.length !== 0) router.push(`1`);
     };
 

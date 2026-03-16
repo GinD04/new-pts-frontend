@@ -5,7 +5,8 @@ import { IAnswerData, isAnswerData, isArrayAnswerData } from '@/shared';
 import { AnswerValueType } from '@/components';
 
 export const useTestAnswer = ({ answerType, questionId }: UseTestAnswerProps): UseTestAnswerReturn => {
-    const { answers, addAnswer, updateAnswer } = useTestStore();
+    const { answers, addAnswer, updateAnswer, globalAnswers, globalZones, setGlobalAnswers, setGlobalZones } =
+        useTestStore();
 
     const currentAnswer = useMemo(() => {
         return answers.find(a => a.questionId === questionId);
