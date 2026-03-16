@@ -1,4 +1,4 @@
-import { IAnswer, IAnswerData, IQuestion } from '@/shared';
+import { IAnswer, IAnswerData, IQuestion, IZoneInfo } from '@/shared';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -8,6 +8,8 @@ type TestState = {
     questions: IQuestion[];
     totalQuestions: number;
     duration?: number;
+    globalAnswers: string[] | null;
+    globalZones: IZoneInfo[] | null;
 
     _hasHydrated: boolean;
     setHasHydrated: (state: boolean) => void;
@@ -18,6 +20,8 @@ type TestState = {
     addAnswer: (answer: IAnswer) => void;
     updateAnswer: (questionId: number, answer: IAnswerData[]) => void;
     clearTest: () => void;
+    setGlobalAnswers: (globalAnswers: string[] | null) => void;
+    setGlobalZones: (globalZones: IZoneInfo[] | null) => void;
 
     getProgress: () => number;
     getAnsweredCount: () => number;
@@ -32,6 +36,8 @@ export const useTestStore = create<TestState>()(
             totalQuestions: 0,
             _hasHydrated: false,
             duration: undefined,
+            globalAnswers: null,
+            globalZones: null,
 
             setCurrentQuestionNumber: index => set({ currentQuestionNumber: index }),
 
@@ -54,6 +60,10 @@ export const useTestStore = create<TestState>()(
                         answer.questionId === questionId ? { ...answer, answers: newAnswers } : answer,
                     ),
                 })),
+
+            setGlobalAnswers: globalAnswers => set({ globalAnswers }),
+
+            setGlobalZones: globalZones => set({ globalZones }),
 
             clearTest: () =>
                 set({

@@ -12,7 +12,8 @@ import { useAuthStore } from '@/store/auth';
 export default function QuestionPage() {
     const { 'question-number': questionNumber } = useParams<{ 'question-number': string }>();
     const { 'testing-id': testingId } = useParams<{ 'testing-id': string }>();
-    const { totalQuestions, questions, _hasHydrated, duration, answers, clearTest } = useTestStore();
+    const { totalQuestions, questions, _hasHydrated, duration, answers, clearTest, globalAnswers, globalZones } =
+        useTestStore();
     const { user } = useAuthStore();
 
     const [saveAllAnswers] = useSaveAnswer();
@@ -36,12 +37,21 @@ export default function QuestionPage() {
         throw new Error('К сожалению, вопрос не найден');
     }
 
-    const options: Option[] =
-        currentQuestion.answers?.map((a, i) => ({
-            id: i,
-            label: a,
-            value: a,
-        })) || [];
+    const getZones = () => {
+        if (currentQuestion.zones && currentQuestion.zones.length !== 0) return currentQuestion.zones;
+        return globalZones ?? [];
+    };
+
+    const getAnswerValues = () => {
+        if (currentQuestion.answers && currentQuestion.answers.length !== 0) return currentQuestion.answers;
+        return globalAnswers ?? [];
+    };
+
+    const options: Option[] = getAnswerValues().map((a, i) => ({
+        id: i,
+        label: a,
+        value: a,
+    }));
 
     const handleChangeQuestion = (q: number) => {
         saveAnswer(localValue);
@@ -60,7 +70,13 @@ export default function QuestionPage() {
         saveAnswer(localValue);
         saveAllAnswers({
             variables: {
-                answers: answers.map(a => ({
+                answers: [
+                    ...answers,
+                    {
+                        questionId: currentQuestion.id,
+                        answer: localValue,
+                    },
+                ].map(a => ({
                     ...a,
                     questionId: Number(a.questionId),
                 })) as AnswerInput[],
@@ -93,7 +109,7 @@ export default function QuestionPage() {
                 options={options}
                 value={localValue}
                 onChange={handleChangeValue}
-                zones={currentQuestion.zones}
+                zones={getZones()}
                 className='min-h-40 max-w-3xl max-h-9/12 w-full flex align-middle'
             />
             <div className='flex flex-row gap-4'>

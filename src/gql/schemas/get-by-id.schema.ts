@@ -1,4 +1,4 @@
-import { IQuestion } from '@/shared';
+import { IQuestion, IZoneInfo } from '@/shared';
 import { gql, TypedDocumentNode } from '@apollo/client';
 
 export type GetTestingByIdQuery = {
@@ -9,6 +9,8 @@ export type GetTestingByIdQuery = {
         startTime: string;
         title: string;
         questions: IQuestion[];
+        globalAnswers: string[];
+        globalZones: IZoneInfo[];
     };
 };
 
@@ -33,6 +35,12 @@ export const GET_BY_ID_TESTING: TypedDocumentNode<GetTestingByIdQuery, GetByIdQu
             }
             startTime
             title
+            globalAnswers
+            globalZones {
+                max
+                min
+                name
+            }
         }
     }
 `;
