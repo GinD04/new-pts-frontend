@@ -6,8 +6,7 @@ import { Text } from '@/components';
 import { useParams, useRouter } from 'next/navigation';
 import { Button, CircularProgress, Divider } from '@heroui/react';
 import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/solid';
-import { useGetTestingById } from '@/gql';
-import { useSaveAnswer } from '@/gql';
+import { useGetTestingById, useSaveAnswer } from '@/gql';
 
 export default function TestingPage() {
     const { 'testing-id': testingId } = useParams<{ 'testing-id': string }>();
