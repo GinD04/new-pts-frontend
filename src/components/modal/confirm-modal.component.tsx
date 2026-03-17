@@ -11,9 +11,9 @@ export const ConfirmModal: FC<IConfirmOptions> = ({ ...options }) => {
                 <Body1>{options.message}</Body1>
             </ModalBody>
             <ModalFooter>
-                <Button onPress={options.onCancel}>Закрыть</Button>
+                <Button onPress={options.onCancel}>{options.textButtonCancel ?? 'Отмена'}</Button>
                 <Button onPress={options.onApply} color='success'>
-                    Ок
+                    {options.textButtonApply ?? 'Ок'}
                 </Button>
             </ModalFooter>
         </>

@@ -2,12 +2,13 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useTestStore } from '@/store';
-import { Button, CircularProgress, Divider, Pagination } from '@heroui/react';
+import { addToast, Button, CircularProgress, Divider, Pagination } from '@heroui/react';
 import { Answer, H5, Option, AnswerValueType, Timer } from '@/components';
 import { useTestAnswer } from '@/hooks';
 import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { AnswerInput, useSaveAnswer } from '@/gql';
 import { useAuthStore } from '@/store/auth';
+import { modalService } from '@/services';
 
 export default function QuestionPage() {
     const { 'question-number': questionNumber } = useParams<{ 'question-number': string }>();
@@ -54,38 +55,54 @@ export default function QuestionPage() {
     }));
 
     const handleChangeQuestion = (q: number) => {
-        saveAnswer(localValue);
         router.push(`/testing/${testingId}/${q}`);
     };
 
     const handleChangeValue = (v: AnswerValueType) => {
         setLocalValue(v);
+        saveAnswer(v);
     };
 
     const handleBack = () => {
         router.push(`/testing/${testingId}`);
     };
 
-    const handleFinishTest = () => {
-        saveAnswer(localValue);
+    const sendAnswers = () => {
         saveAllAnswers({
             variables: {
-                answers: [
-                    ...answers,
-                    {
-                        questionId: currentQuestion.id,
-                        answer: localValue,
-                    },
-                ].map(a => ({
+                answers: [...answers].map(a => ({
                     ...a,
                     questionId: Number(a.questionId),
                 })) as AnswerInput[],
                 studentId: user?.id ?? 0,
                 testingId: Number(testingId),
             },
+        })
+            .then(() => {
+                clearTest();
+                addToast({
+                    color: 'success',
+                    title: 'Ответы сохранены',
+                    description: 'Тестирование успешно завершено',
+                });
+                router.push('/testing');
+            })
+            .catch(() =>
+                addToast({
+                    title: 'Ошибка',
+                    description: 'Не удалось сохранить ответы',
+                    color: 'danger',
+                }),
+            );
+    };
+
+    const handleFinishTest = () => {
+        modalService.openConfirm({
+            header: 'Вы уверены, что хотите завершить тест?',
+            message: 'Ваши ответы будут сохранены и тест завершится.',
+            onApply: sendAnswers,
+            textButtonApply: 'Завершить',
         });
-        clearTest();
-        router.push('/testing');
     };
 
     return (
