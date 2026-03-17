@@ -14,7 +14,7 @@ export type AnswerInput = {
 export type SaveStudentAnswerVariables = {
     studentId: number;
     testingId: number;
-    answers: AnswerInput[];
+    answers?: AnswerInput[];
 };
 
 export interface SaveStudentAnswerMutation {
