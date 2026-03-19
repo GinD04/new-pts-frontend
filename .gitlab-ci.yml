@@ -29,7 +29,9 @@ variables:
   NEXT_TELEMETRY_DISABLED: 1
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
   LATEST_IMAGE_TAG: $CI_REGISTRY_IMAGE:latest
+  STAGING_IMAGE_TAG: $CI_REGISTRY_IMAGE:stage
   REVIEW_CONTAINER_NAME: review-$CI_COMMIT_REF_SLUG
+  STAGING_CONTAINER_NAME: pts-staging
   DOCKER_DRIVER: overlay2
 
 build:
@@ -71,9 +73,9 @@ build-review-docker:
 build-stage-docker:
   <<: *docker-template-job
   script:
-    - docker build -t $IMAGE_TAG -t $STAGING_CONTAINER_NAME .
+    - docker build -t $IMAGE_TAG -t $STAGING_IMAGE_TAG -f Dockerfile.ci .
     - docker push $IMAGE_TAG
-    - docker push $STAGING_CONTAINER_NAME
+    - docker push $STAGING_IMAGE_TAG
   rules:
       - if: $CI_COMMIT_BRANCH == 'develop'
 
@@ -178,71 +180,56 @@ review-deploy-stop-job:
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
 
-.staging-deploy:
-  stage: deploy
-  image: $CI_REGISTRY/utils/images/ssh
-  needs:
-    - job: build
-      artifacts: true
+staging-deploy:
+  <<: *deploy-template-job
   environment:
     name: staging
     on_stop: staging-deploy-stop
-  cache: []
-  before_script:
-    - chmod 400 $STAGING_SSH_KEY
+  needs:
+    - job: build-stage-docker
   script:
-    - rsync -avz --delete --mkpath --chown=$STAGING_SSH_USER:www-data --chmod=g+w -e "ssh -i $STAGING_SSH_KEY -o StrictHostKeyChecking=no -p $STAGING_SSH_PORT" dist/ $STAGING_SSH_USER@$STAGING_SSH_HOST:/srv/pts/staging/
+    - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - docker pull $IMAGE_TAG
+    - docker stop $STAGING_CONTAINER_NAME || true
+    - docker rm $STAGING_CONTAINER_NAME || true
+    - docker run -d --name $STAGING_CONTAINER_NAME -P $IMAGE_TAG
+    - docker image prune
+    - sleep 2
+    - |
+      HOST_PORT=$(docker port "${STAGING_CONTAINER_NAME}" ${APP_PORT} | grep '0.0.0.0' | grep -o '[0-9]*$')
+    - |
+      if [ -z "${HOST_PORT}" ]; then
+        echo "ERROR: no host port detected"
+        docker stop $STAGING_CONTAINER_NAME || true
+        docker rm $STAGING_CONTAINER_NAME || true
+        exit 1
+      fi
+    - |
+      echo "location /staging {
+          proxy_pass http://127.0.0.1:${HOST_PORT};
+          proxy_set_header Host \$host;
+          proxy_set_header X-Real-IP \$remote_addr;
+          proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto \$scheme;
+      }" > "${CI_COMMIT_REF_SLUG}.conf"
+    - scp -P $STAGING_SSH_PORT "staging.conf" $STAGING_SSH_USER@$STAGING_SSH_HOST:${CONF_LOCATION}/
+    - ssh -p $STAGING_SSH_PORT $STAGING_SSH_USER@$STAGING_SSH_HOST "chown ${STAGING_SSH_USER}:www-data ${CONF_LOCATION}/staging.conf"
+    - ssh -p $STAGING_SSH_PORT $STAGING_SSH_USER@$STAGING_SSH_HOST "chmod g+w ${CONF_LOCATION}/staging.conf"
+    - ssh -p $STAGING_SSH_PORT $STAGING_SSH_USER@$STAGING_SSH_HOST "sudo service nginx reload"
   rules:
-    - if: $CI_COMMIT_BRANCH == 'develop'
+      - if: $CI_COMMIT_BRANCH == 'develop'
 
-.staging-deploy-stop:
-  stage: deploy
-  image: $CI_REGISTRY/utils/images/ssh
-  variables:
-    GIT_STRATEGY: none
-  when: manual
+staging-deploy-stop:
+  <<: *deploy-template-job
   environment:
     name: staging
     action: stop
-  cache: []
-  before_script:
-    - chmod 400 $STAGING_SSH_KEY
+  when: manual
   script:
-    - ssh -i $STAGING_SSH_KEY -o StrictHostKeyChecking=no -p $STAGING_SSH_PORT $STAGING_SSH_USER@$STAGING_SSH_HOST "rm -rf /srv/pts/staging/*"
+    - docker stop $STAGING_CONTAINER_NAME || true
+    - docker rm $STAGING_CONTAINER_NAME || true
+    - docker image prune
+    - ssh -p $STAGING_SSH_PORT $STAGING_SSH_USER@$STAGING_SSH_HOST "rm -f ${CONF_LOCATION}/staging.conf"
+    - ssh -p $STAGING_SSH_PORT $STAGING_SSH_USER@$STAGING_SSH_HOST "sudo service nginx reload"
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
-
-.merge_request-review:
-  stage: deploy
-  image: $CI_REGISTRY/utils/images/ssh
-  needs:
-    - job: build
-      artifacts: true
-  environment:
-    name: review/$CI_COMMIT_REF_SLUG
-    url: "https://$FRONTEND_HOST/review/$CI_COMMIT_REF_SLUG/"
-    on_stop: merge_request-review-stop
-  cache: []
-  before_script:
-    - chmod 400 $STAGING_SSH_KEY
-  script:
-    - rsync -avz --delete --mkpath --chown=$STAGING_SSH_USER:www-data --chmod=g+w -e "ssh -i $STAGING_SSH_KEY -o StrictHostKeyChecking=no -p $STAGING_SSH_PORT" dist/ $STAGING_SSH_USER@$STAGING_SSH_HOST:/srv/pts/review/$CI_COMMIT_REF_SLUG/
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-
-.merge_request-review-stop:
-  stage: deploy
-  image: $CI_REGISTRY/utils/images/ssh
-  variables:
-    GIT_STRATEGY: none
-  when: manual
-  environment:
-    name: review/$CI_COMMIT_REF_SLUG
-    action: stop
-  cache: []
-  before_script:
-    - chmod 400 $STAGING_SSH_KEY
-  script:
-    - ssh -i $STAGING_SSH_KEY -o StrictHostKeyChecking=no -p $STAGING_SSH_PORT $STAGING_SSH_USER@$STAGING_SSH_HOST "rm -rf /srv/pts/review/$CI_COMMIT_REF_SLUG"
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
