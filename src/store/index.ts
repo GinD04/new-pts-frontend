@@ -1,2 +1,3 @@
-export * from './testing.store';
+export * from './testing';
 export * from './auth';
+export * from './timer';

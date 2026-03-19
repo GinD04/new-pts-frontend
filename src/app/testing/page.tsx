@@ -50,8 +50,8 @@ export default function AllTestingsPage() {
                     <TestingCard
                         key={`card-${testing.id}`}
                         title={testing.title}
-                        duration={formatDuration(testing.duration ?? 0)}
-                        startTime={formatDate(testing.startTime ?? '')}
+                        duration={testing.duration ? formatDuration(testing.duration) : undefined}
+                        startTime={testing.startTime ? formatDate(testing.startTime) : undefined}
                         onPress={() => handlePressTestingCard(testing.id)}
                     />
                 ))}

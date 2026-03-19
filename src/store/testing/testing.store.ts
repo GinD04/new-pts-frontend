@@ -1,31 +1,6 @@
-import { IAnswer, IAnswerData, IQuestion, IZoneInfo } from '@/shared';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-type TestState = {
-    currentQuestionNumber: number;
-    answers: IAnswer[];
-    questions: IQuestion[];
-    totalQuestions: number;
-    duration?: number;
-    globalAnswers: string[] | null;
-    globalZones: IZoneInfo[] | null;
-
-    _hasHydrated: boolean;
-    setHasHydrated: (state: boolean) => void;
-
-    setCurrentQuestionNumber: (index: number) => void;
-    setDuration: (duration: number) => void;
-    setQuestions: (questions: IQuestion[]) => void;
-    addAnswer: (answer: IAnswer) => void;
-    updateAnswer: (questionId: number, answer: IAnswerData[]) => void;
-    clearTest: () => void;
-    setGlobalAnswers: (globalAnswers: string[] | null) => void;
-    setGlobalZones: (globalZones: IZoneInfo[] | null) => void;
-
-    getProgress: () => number;
-    getAnsweredCount: () => number;
-};
+import { TestState } from './testing.types';
 
 export const useTestStore = create<TestState>()(
     persist(
@@ -38,6 +13,7 @@ export const useTestStore = create<TestState>()(
             duration: undefined,
             globalAnswers: null,
             globalZones: null,
+            remainingSeconds: null,
 
             setCurrentQuestionNumber: index => set({ currentQuestionNumber: index }),
 
@@ -65,11 +41,14 @@ export const useTestStore = create<TestState>()(
 
             setGlobalZones: globalZones => set({ globalZones }),
 
+            setRemainingSeconds: s => set({ remainingSeconds: s }),
+
             clearTest: () =>
                 set({
                     totalQuestions: 0,
                     currentQuestionNumber: 0,
                     answers: [],
+                    remainingSeconds: null,
                 }),
 
             getProgress: () => {

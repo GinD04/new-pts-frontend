@@ -13,6 +13,9 @@ export interface IModalOptions {
     onApply?(data?: unknown): void;
     onCancel?(data?: unknown): void;
     type?: ModalType;
+    isDismissable?: boolean;
+    hideCloseButton?: boolean;
+    isKeyboardDismissDisabled?: boolean;
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | 'full';
 }
 
@@ -20,6 +23,7 @@ export const MODAL_TYPE = {
     FORM: 'FORM',
     CONFIRM: 'CONFIRM',
     CUSTOM: 'CUSTOM',
+    INFO: 'INFO',
 } as const;
 
 export type ModalType = keyof typeof MODAL_TYPE;
@@ -44,7 +48,12 @@ export interface IFormModalOptions extends IModalOptions {
     textButtonReset?: string;
 }
 
+export interface IInfoModalOptions extends IModalOptions {
+    textButtonApply?: string;
+}
+
 export type AnyModalOptions =
     | (IConfirmOptions & { type: 'CONFIRM' })
     | (IFormModalOptions & { type: 'FORM' })
-    | (ICustomModalOptions & { type: 'CUSTOM' });
+    | (ICustomModalOptions & { type: 'CUSTOM' })
+    | (IInfoModalOptions & { type: 'INFO' });
