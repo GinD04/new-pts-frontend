@@ -38,7 +38,7 @@ export const useTimer = ({
         if (autoStart && initialSeconds > 0) {
             setTimeout(() => startTimer(), 0);
         }
-    }, [autoStart, init, initialSeconds, startTimer]);
+    }, []);
 
     return {
         seconds,
