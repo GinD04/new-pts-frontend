@@ -1,8 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+    output: 'standalone',
     reactCompiler: true,
-    distDir: 'dist',
     trailingSlash: true,
     skipTrailingSlashRedirect: false,
     basePath: process.env.PUBLIC_URL ?? '',
