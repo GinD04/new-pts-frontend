@@ -18,7 +18,7 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
         const ref = setInterval(() => {
             const { seconds } = get();
             if (seconds <= 1) {
-                clearInterval(get().intervalRef!);
+                clearInterval(ref);
                 set({ intervalRef: null, isActive: false, seconds: 0 });
                 onTimeUp?.();
                 return;
