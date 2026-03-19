@@ -1,0 +1,27 @@
+ARG NODE_VERSION=24.14.0-alpine
+
+FROM debian:12 AS builder
+
+WORKDIR /app
+
+COPY dist/public ./public
+COPY dist/standalone ./
+COPY dist/static ./.next/static
+
+FROM node:${NODE_VERSION} AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+ENV NEXT_TELEMETRY_DISABLED=1
+
+COPY --from=builder --chown=node:node /app .
+
+USER node
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
