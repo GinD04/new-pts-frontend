@@ -211,7 +211,7 @@ staging-deploy:
           proxy_set_header X-Real-IP \$remote_addr;
           proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
           proxy_set_header X-Forwarded-Proto \$scheme;
-      }" > "${CI_COMMIT_REF_SLUG}.conf"
+      }" > "staging.conf"
     - scp -P $STAGING_SSH_PORT "staging.conf" $STAGING_SSH_USER@$STAGING_SSH_HOST:${CONF_LOCATION}/
     - ssh -p $STAGING_SSH_PORT $STAGING_SSH_USER@$STAGING_SSH_HOST "chown ${STAGING_SSH_USER}:www-data ${CONF_LOCATION}/staging.conf"
     - ssh -p $STAGING_SSH_PORT $STAGING_SSH_USER@$STAGING_SSH_HOST "chmod g+w ${CONF_LOCATION}/staging.conf"
