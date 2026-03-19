@@ -35,7 +35,7 @@ variables:
 build:
   stage: build
   variables:
-    NEXT_PUBLIC_BASE_URL: /
+    NEXT_PUBLIC_BASE_URL: ""
   script:
     - export PUBLIC_URL=
     - if [[ $CI_PIPELINE_SOURCE == 'merge_request_event' ]]; then export PUBLIC_URL=/review/$CI_COMMIT_REF_SLUG; fi
