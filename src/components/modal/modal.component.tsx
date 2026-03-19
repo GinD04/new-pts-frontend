@@ -5,6 +5,7 @@ import { Modal as HerouiModal, ModalContent } from '@heroui/react';
 import { CustomModal } from './custom-modal.component';
 import { ConfirmModal } from './confirm-modal.component';
 import { FormModal } from './form-modal.component';
+import { InfoModal } from './info-modal.component';
 
 const modalBodyContent: Record<
     ModalType,
@@ -39,6 +40,16 @@ const modalBodyContent: Record<
         if (options.type !== MODAL_TYPE.FORM) return null;
         return (
             <FormModal
+                {...options}
+                onCancel={() => handleClose(onClose)}
+                onApply={data => handleApply(onClose, data)}
+            />
+        );
+    },
+    [MODAL_TYPE.INFO]: (options, onClose, handleClose, handleApply) => {
+        if (options.type !== MODAL_TYPE.INFO) return null;
+        return (
+            <InfoModal
                 {...options}
                 onCancel={() => handleClose(onClose)}
                 onApply={data => handleApply(onClose, data)}
@@ -86,6 +97,9 @@ export const Modal = () => {
         <HerouiModal
             isOpen={!!modalOptions}
             size={modalOptions?.size}
+            isDismissable={modalOptions?.isDismissable}
+            isKeyboardDismissDisabled={modalOptions?.isKeyboardDismissDisabled}
+            hideCloseButton={modalOptions?.hideCloseButton}
             onClose={clearModal}
             backdrop='opaque'
             radius='lg'>

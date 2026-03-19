@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { TimerProps } from './timer.types';
 import { Body1 } from '../text';
 import { Button } from '@heroui/react';
@@ -11,6 +11,7 @@ export const Timer: React.FC<TimerProps> = ({
     onTimeUp,
     onStartTimer,
     onPauseTimer,
+    onTick,
 }) => {
     const { isActive, pauseTimer, formattedTime, seconds, startTimer } = useTimer({
         autoStart,
@@ -19,6 +20,14 @@ export const Timer: React.FC<TimerProps> = ({
         onStartTimer,
         onPauseTimer,
     });
+
+    const prevSecondsRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        if (prevSecondsRef.current === seconds) return;
+        prevSecondsRef.current = seconds;
+        onTick?.(seconds);
+    }, [seconds, onTick]);
 
     return (
         <div className='flex flex-row items-center gap-2'>

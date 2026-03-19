@@ -5,6 +5,7 @@ import {
     MODAL_TYPE,
     IFormModalOptions,
     AnyModalOptions,
+    IInfoModalOptions,
 } from '@/shared';
 
 export class ModalService implements IObserver {
@@ -32,6 +33,10 @@ export class ModalService implements IObserver {
 
     public openCustom = (options: ICustomModalOptions) => {
         this.notify({ ...options, type: MODAL_TYPE.CUSTOM });
+    };
+
+    public openInfo = (options: IInfoModalOptions) => {
+        this.notify({ ...options, type: MODAL_TYPE.INFO });
     };
 }
 

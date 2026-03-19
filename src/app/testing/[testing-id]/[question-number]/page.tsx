@@ -1,21 +1,34 @@
 'use client';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useTestStore } from '@/store';
+import { useTestStore, useAuthStore, useTimerStore } from '@/store';
 import { addToast, Button, CircularProgress, Divider, Pagination } from '@heroui/react';
 import { Answer, H5, Option, AnswerValueType, Timer } from '@/components';
 import { useTestAnswer } from '@/hooks';
 import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { AnswerInput, useSaveAnswer } from '@/gql';
-import { useAuthStore } from '@/store/auth';
 import { modalService } from '@/services';
 
 export default function QuestionPage() {
     const { 'question-number': questionNumber } = useParams<{ 'question-number': string }>();
     const { 'testing-id': testingId } = useParams<{ 'testing-id': string }>();
-    const { totalQuestions, questions, _hasHydrated, duration, answers, clearTest, globalAnswers, globalZones } =
-        useTestStore();
+    const {
+        totalQuestions,
+        questions,
+        _hasHydrated,
+        duration,
+        answers,
+        clearTest,
+        globalAnswers,
+        globalZones,
+        remainingSeconds,
+        setRemainingSeconds,
+    } = useTestStore();
     const { user } = useAuthStore();
+
+    const initialSeconds = remainingSeconds ?? duration;
+
+    const { stopInterval, startInterval } = useTimerStore();
 
     const [saveAllAnswers] = useSaveAnswer();
 
@@ -64,6 +77,9 @@ export default function QuestionPage() {
     };
 
     const handleBack = () => {
+        clearTest();
+        clearTest();
+        stopInterval();
         router.push(`/testing/${testingId}`);
     };
 
@@ -80,6 +96,8 @@ export default function QuestionPage() {
         })
             .then(() => {
                 clearTest();
+                clearTest();
+                stopInterval();
                 addToast({
                     color: 'success',
                     title: 'Ответы сохранены',
@@ -105,6 +123,35 @@ export default function QuestionPage() {
         });
     };
 
+    const handleTimeUp = () => {
+        modalService.openCustom({
+            header: 'К сожалению, время вышло',
+            footer: (
+                <Button
+                    color='secondary'
+                    fullWidth
+                    onPress={handleFinishTest}
+                    className='w-min animate-in fade-in duration-300'>
+                    Завершить тест и сохранить ответы
+                </Button>
+            ),
+            isDismissable: false,
+            isKeyboardDismissDisabled: true,
+            hideCloseButton: true,
+        });
+    };
+
+    const handlePause = () => {
+        modalService.openInfo({
+            header: 'Вы поставили тестирование на паузу',
+            textButtonApply: 'Продолжить',
+            onApply: () => startInterval(handleTimeUp),
+            isDismissable: false,
+            isKeyboardDismissDisabled: true,
+            hideCloseButton: true,
+        });
+    };
+
     return (
         <>
             <header className='w-full max-w-xl flex justify-between items-center'>
@@ -115,9 +162,17 @@ export default function QuestionPage() {
                     variant='light'>
                     Назад
                 </Button>
-                <Timer initialSeconds={duration} autoStart />
+                {duration !== 0 && (
+                    <Timer
+                        initialSeconds={initialSeconds}
+                        autoStart
+                        onTimeUp={handleTimeUp}
+                        onPauseTimer={handlePause}
+                        onTick={setRemainingSeconds}
+                    />
+                )}
             </header>
-            <H5>{currentQuestion.text}</H5>
+            <H5 className='max-w-2xl'>{currentQuestion.text}</H5>
             <Divider />
             <Answer
                 key={questionNumber}
@@ -127,7 +182,7 @@ export default function QuestionPage() {
                 value={localValue}
                 onChange={handleChangeValue}
                 zones={getZones()}
-                className='min-h-40 max-w-3xl max-h-9/12 w-full flex align-middle'
+                className='min-h-40 max-w-2xl max-h-9/12 w-full flex align-middle'
             />
             <div className='flex flex-row gap-4'>
                 <Pagination
