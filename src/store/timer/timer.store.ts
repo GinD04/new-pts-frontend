@@ -5,7 +5,7 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
     seconds: 0,
     isActive: false,
     isPaused: false,
-    intervalRef: null as NodeJS.Timeout | null,
+    intervalRef: null,
 
     setSeconds: seconds => set({ seconds }),
     setIsActive: isActive => set({ isActive }),
