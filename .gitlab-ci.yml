@@ -28,8 +28,10 @@ default:
 variables:
   NEXT_TELEMETRY_DISABLED: 1
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  PRODUCTION_IMAGE_TAG: $CI_REGISTRY_IMAGE:production
   LATEST_IMAGE_TAG: $CI_REGISTRY_IMAGE:latest
   STAGING_IMAGE_TAG: $CI_REGISTRY_IMAGE:stage
+  STABLE_IMAGE_TAG: $CI_REGISTRY_IMAGE:stable
   REVIEW_CONTAINER_NAME: review-$CI_COMMIT_REF_SLUG
   STAGING_CONTAINER_NAME: pts-staging
   DOCKER_DRIVER: overlay2
@@ -42,6 +44,7 @@ build:
     - export PUBLIC_URL=
     - if [[ $CI_PIPELINE_SOURCE == 'merge_request_event' ]]; then export PUBLIC_URL=/review/$CI_COMMIT_REF_SLUG; fi
     - if [[ $CI_COMMIT_BRANCH == 'develop' ]]; then export PUBLIC_URL=/staging; fi
+    - if [[ $CI_COMMIT_BRANCH == 'production' ]]; then export PUBLIC_URL=/prod; fi
     - npm run build
     - mkdir dist
     - cp -r .next/standalone .next/static public dist/
@@ -73,11 +76,30 @@ build-review-docker:
 build-stage-docker:
   <<: *docker-template-job
   script:
-    - docker build -t $IMAGE_TAG -t $STAGING_IMAGE_TAG -f Dockerfile.ci .
+    - docker build -t $IMAGE_TAG -t $LATEST_IMAGE_TAG -t $STAGING_IMAGE_TAG -f Dockerfile.ci .
     - docker push $IMAGE_TAG
+    - docker push $LATEST_IMAGE_TAG
     - docker push $STAGING_IMAGE_TAG
   rules:
       - if: $CI_COMMIT_BRANCH == 'develop'
+
+build-production-docker:
+  <<: *docker-template-job
+  script:
+    - docker build -t $PRODUCTION_IMAGE_TAG -f Dockerfile.ci .
+    - docker push $PRODUCTION_IMAGE_TAG
+  rules:
+      - if: $CI_COMMIT_BRANCH == 'production'
+
+build-stable-docker:
+  <<: *docker-template-job
+  script:
+    - docker build -t $IMAGE_TAG -t $LATEST_IMAGE_TAG -t $STABLE_IMAGE_TAG -f Dockerfile.ci .
+    - docker push $IMAGE_TAG
+    - docker push $LATEST_IMAGE_TAG
+    - docker push $STABLE_IMAGE_TAG
+  rules:
+      - if: $CI_COMMIT_BRANCH == 'main'
 
 eslint:
   stage: test
@@ -233,3 +255,43 @@ staging-deploy-stop:
     - ssh -p $STAGING_SSH_PORT $STAGING_SSH_USER@$STAGING_SSH_HOST "sudo service nginx reload"
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
+
+production-deploy:
+  <<: *deploy-template-job
+  environment:
+    name: production
+    on_stop: production-deploy-stop
+  needs:
+    - job: build-stage-docker
+  script:
+    - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - docker pull $PRODUCTION_IMAGE_TAG
+    - docker stop $PRODUCTION_CONTAINER_NAME || true
+    - docker rm $PRODUCTION_CONTAINER_NAME || true
+    - docker run -d --name $PRODUCTION_CONTAINER_NAME -p 8351:${APP_PORT} $PRODUCTION_IMAGE_TAG
+    - docker image prune -f
+    - sleep 2
+    - |
+      HOST_PORT=$(docker port "${PRODUCTION_CONTAINER_NAME}" ${APP_PORT} | grep '0.0.0.0' | grep -o '[0-9]*$')
+    - |
+      if [ -z "${HOST_PORT}" ]; then
+        echo "ERROR: no host port detected"
+        docker stop $PRODUCTION_CONTAINER_NAME || true
+        docker rm $PRODUCTION_CONTAINER_NAME || true
+        exit 1
+      fi
+  rules:
+      - if: $CI_COMMIT_BRANCH == 'production'
+
+production-deploy-stop:
+  <<: *deploy-template-job
+  environment:
+    name: production
+    action: stop
+  when: manual
+  script:
+    - docker stop $PRODUCTION_CONTAINER_NAME || true
+    - docker rm $PRODUCTION_CONTAINER_NAME || true
+    - docker image prune -f
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'production'
