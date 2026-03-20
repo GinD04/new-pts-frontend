@@ -76,8 +76,9 @@ build-review-docker:
 build-stage-docker:
   <<: *docker-template-job
   script:
-    - docker build -t $IMAGE_TAG -t $STAGING_IMAGE_TAG -f Dockerfile.ci .
+    - docker build -t $IMAGE_TAG -t $LATEST_IMAGE_TAG -t $STAGING_IMAGE_TAG -f Dockerfile.ci .
     - docker push $IMAGE_TAG
+    - docker push $LATEST_IMAGE_TAG
     - docker push $STAGING_IMAGE_TAG
   rules:
       - if: $CI_COMMIT_BRANCH == 'develop'
@@ -93,11 +94,10 @@ build-production-docker:
 build-stable-docker:
   <<: *docker-template-job
   script:
-    - docker build -t $IMAGE_TAG -t $LATEST_IMAGE_TAG -t $STABLE_IMAGE_TAG -t $COMMIT_IMAGE_TAG -f Dockerfile.ci .
+    - docker build -t $IMAGE_TAG -t $LATEST_IMAGE_TAG -t $STABLE_IMAGE_TAG -f Dockerfile.ci .
     - docker push $IMAGE_TAG
     - docker push $LATEST_IMAGE_TAG
     - docker push $STABLE_IMAGE_TAG
-    - docker push $COMMIT_IMAGE_TAG
   rules:
       - if: $CI_COMMIT_BRANCH == 'main'
 
