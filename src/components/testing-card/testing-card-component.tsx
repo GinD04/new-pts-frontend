@@ -11,12 +11,14 @@ export const TestingCard = ({ title, duration, startTime, onPress }: TestingCard
             </CardHeader>
             <CardBody className='flex flex-row gap-2 items-center'>
                 <ClockIcon className='size-5' />
-                <Body1>{duration}</Body1>
+                <Body1>{duration ?? 'Не ограничено'}</Body1>
             </CardBody>
-            <CardFooter className='flex flex-row gap-2 items-center'>
-                <CalendarDateRangeIcon className='size-5' />
-                <Body1>{startTime}</Body1>
-            </CardFooter>
+            {startTime && (
+                <CardFooter className='flex flex-row gap-2 items-center'>
+                    <CalendarDateRangeIcon className='size-5' />
+                    <Body1>{startTime}</Body1>
+                </CardFooter>
+            )}
         </Card>
     </div>
 );

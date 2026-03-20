@@ -4,4 +4,5 @@ export interface TimerProps {
     onTimeUp?: () => void;
     onStartTimer?: () => void;
     onPauseTimer?: () => void;
+    onTick?: (s: number) => void;
 }

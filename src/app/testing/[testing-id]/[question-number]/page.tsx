@@ -1,20 +1,34 @@
 'use client';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useTestStore } from '@/store';
-import { Button, CircularProgress, Divider, Pagination } from '@heroui/react';
+import { useTestStore, useAuthStore, useTimerStore } from '@/store';
+import { addToast, Button, CircularProgress, Divider, Pagination } from '@heroui/react';
 import { Answer, H5, Option, AnswerValueType, Timer } from '@/components';
 import { useTestAnswer } from '@/hooks';
 import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { AnswerInput, useSaveAnswer } from '@/gql';
-import { useAuthStore } from '@/store/auth';
+import { modalService } from '@/services';
 
 export default function QuestionPage() {
     const { 'question-number': questionNumber } = useParams<{ 'question-number': string }>();
     const { 'testing-id': testingId } = useParams<{ 'testing-id': string }>();
-    const { totalQuestions, questions, _hasHydrated, duration, answers, clearTest, globalAnswers, globalZones } =
-        useTestStore();
+    const {
+        totalQuestions,
+        questions,
+        _hasHydrated,
+        duration,
+        answers,
+        clearTest,
+        globalAnswers,
+        globalZones,
+        remainingSeconds,
+        setRemainingSeconds,
+    } = useTestStore();
     const { user } = useAuthStore();
+
+    const initialSeconds = remainingSeconds ?? duration;
+
+    const { stopInterval, startInterval } = useTimerStore();
 
     const [saveAllAnswers] = useSaveAnswer();
 
@@ -54,38 +68,88 @@ export default function QuestionPage() {
     }));
 
     const handleChangeQuestion = (q: number) => {
-        saveAnswer(localValue);
         router.push(`/testing/${testingId}/${q}`);
     };
 
     const handleChangeValue = (v: AnswerValueType) => {
         setLocalValue(v);
+        saveAnswer(v);
     };
 
     const handleBack = () => {
+        clearTest();
+        clearTest();
+        stopInterval();
         router.push(`/testing/${testingId}`);
     };
 
-    const handleFinishTest = () => {
-        saveAnswer(localValue);
+    const sendAnswers = () => {
         saveAllAnswers({
             variables: {
-                answers: [
-                    ...answers,
-                    {
-                        questionId: currentQuestion.id,
-                        answer: localValue,
-                    },
-                ].map(a => ({
+                answers: [...answers].map(a => ({
                     ...a,
                     questionId: Number(a.questionId),
                 })) as AnswerInput[],
                 studentId: user?.id ?? 0,
                 testingId: Number(testingId),
             },
+        })
+            .then(() => {
+                clearTest();
+                clearTest();
+                stopInterval();
+                addToast({
+                    color: 'success',
+                    title: 'Ответы сохранены',
+                    description: 'Тестирование успешно завершено',
+                });
+                router.push('/testing');
+            })
+            .catch(() =>
+                addToast({
+                    title: 'Ошибка',
+                    description: 'Не удалось сохранить ответы',
+                    color: 'danger',
+                }),
+            );
+    };
+
+    const handleFinishTest = () => {
+        modalService.openConfirm({
+            header: 'Вы уверены, что хотите завершить тест?',
+            message: 'Ваши ответы будут сохранены и тест завершится.',
+            onApply: sendAnswers,
+            textButtonApply: 'Завершить',
         });
-        clearTest();
-        router.push('/testing');
+    };
+
+    const handleTimeUp = () => {
+        modalService.openCustom({
+            header: 'К сожалению, время вышло',
+            footer: (
+                <Button
+                    color='secondary'
+                    fullWidth
+                    onPress={handleFinishTest}
+                    className='w-min animate-in fade-in duration-300'>
+                    Завершить тест и сохранить ответы
+                </Button>
+            ),
+            isDismissable: false,
+            isKeyboardDismissDisabled: true,
+            hideCloseButton: true,
+        });
+    };
+
+    const handlePause = () => {
+        modalService.openInfo({
+            header: 'Вы поставили тестирование на паузу',
+            textButtonApply: 'Продолжить',
+            onApply: () => startInterval(handleTimeUp),
+            isDismissable: false,
+            isKeyboardDismissDisabled: true,
+            hideCloseButton: true,
+        });
     };
 
     return (
@@ -98,9 +162,17 @@ export default function QuestionPage() {
                     variant='light'>
                     Назад
                 </Button>
-                <Timer initialSeconds={duration} autoStart />
+                {duration !== 0 && (
+                    <Timer
+                        initialSeconds={initialSeconds}
+                        autoStart
+                        onTimeUp={handleTimeUp}
+                        onPauseTimer={handlePause}
+                        onTick={setRemainingSeconds}
+                    />
+                )}
             </header>
-            <H5>{currentQuestion.text}</H5>
+            <H5 className='max-w-2xl'>{currentQuestion.text}</H5>
             <Divider />
             <Answer
                 key={questionNumber}
@@ -110,7 +182,7 @@ export default function QuestionPage() {
                 value={localValue}
                 onChange={handleChangeValue}
                 zones={getZones()}
-                className='min-h-40 max-w-3xl max-h-9/12 w-full flex align-middle'
+                className='min-h-40 max-w-2xl max-h-9/12 w-full flex align-middle'
             />
             <div className='flex flex-row gap-4'>
                 <Pagination

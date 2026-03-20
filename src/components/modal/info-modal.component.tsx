@@ -1,9 +1,9 @@
-import { IConfirmOptions } from '@/shared';
+import { IInfoModalOptions } from '@/shared';
 import { Button, ModalBody, ModalFooter, ModalHeader } from '@heroui/react';
 import { FC } from 'react';
 import { Body1 } from '@/components';
 
-export const ConfirmModal: FC<IConfirmOptions> = ({ ...options }) => {
+export const InfoModal: FC<IInfoModalOptions> = ({ ...options }) => {
     return (
         <>
             <ModalHeader>{options.header}</ModalHeader>
@@ -11,8 +11,7 @@ export const ConfirmModal: FC<IConfirmOptions> = ({ ...options }) => {
                 <Body1>{options.message}</Body1>
             </ModalBody>
             <ModalFooter>
-                <Button onPress={options.onCancel}>{options.textButtonCancel ?? 'Отмена'}</Button>
-                <Button onPress={options.onApply} color='success'>
+                <Button onPress={options.onApply} color='primary' fullWidth>
                     {options.textButtonApply ?? 'Ок'}
                 </Button>
             </ModalFooter>
