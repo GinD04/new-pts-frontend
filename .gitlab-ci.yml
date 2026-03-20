@@ -268,8 +268,8 @@ production-deploy:
     - docker pull $PRODUCTION_IMAGE_TAG
     - docker stop $PRODUCTION_CONTAINER_NAME || true
     - docker rm $PRODUCTION_CONTAINER_NAME || true
-    - docker run -d --name $PRODUCTION_CONTAINER_NAME -p 8351:${APP_PORT} $IMAGE_TAG
-    - docker image prune
+    - docker run -d --name $PRODUCTION_CONTAINER_NAME -p 8351:${APP_PORT} $PRODUCTION_IMAGE_TAG
+    - docker image prune -f
     - sleep 2
     - |
       HOST_PORT=$(docker port "${PRODUCTION_CONTAINER_NAME}" ${APP_PORT} | grep '0.0.0.0' | grep -o '[0-9]*$')
@@ -281,7 +281,7 @@ production-deploy:
         exit 1
       fi
   rules:
-      - if: $CI_COMMIT_BRANCH == 'develop'
+      - if: $CI_COMMIT_BRANCH == 'production'
 
 production-deploy-stop:
   <<: *deploy-template-job
@@ -294,4 +294,4 @@ production-deploy-stop:
     - docker rm $PRODUCTION_CONTAINER_NAME || true
     - docker image prune -f
   rules:
-    - if: $CI_COMMIT_BRANCH == 'develop'
+    - if: $CI_COMMIT_BRANCH == 'production'
