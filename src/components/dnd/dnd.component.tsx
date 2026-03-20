@@ -126,7 +126,8 @@ export const DragDrop: React.FC<DragDropComponentProps> = ({
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}>
             <SortableContext items={allIds} strategy={verticalListSortingStrategy}>
-                <div className={`flex h-fit max-h-full overflow-auto w-full p-2 gap-4 md:p-4 ${className}`}>
+                <div
+                    className={`flex h-fit max-h-full overflow-auto justify-between w-full p-2 gap-4 md:p-4 ${className}`}>
                     <SourceArea items={getItemsForZone(null)} renderItem={renderItem} />
                     <div className='flex flex-col gap-4'>
                         {dropZones.map(zone => (

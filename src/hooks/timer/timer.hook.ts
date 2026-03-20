@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { UseTimerProps, UseTimerReturn } from './timer.types';
+import { useEffect, useRef, useCallback } from 'react';
+import { UseTimerProps } from './timer.types';
 import { formatDuration } from '@/shared';
+import { useTimerStore } from '@/store';
 
 export const useTimer = ({
     initialSeconds = 0,
@@ -8,90 +9,48 @@ export const useTimer = ({
     onTimeUp,
     onPauseTimer,
     onStartTimer,
-}: UseTimerProps = {}): UseTimerReturn => {
-    const [seconds, setSeconds] = useState<number>(() => initialSeconds);
-    const [isActive, setIsActive] = useState<boolean>(autoStart);
-    const [isPaused, setIsPaused] = useState<boolean>(false);
-
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+}: UseTimerProps = {}) => {
+    const { seconds, isActive, isPaused, startInterval, stopInterval, init } = useTimerStore();
     const onTimeUpRef = useRef(onTimeUp);
-    const initialSecondsRef = useRef(initialSeconds);
-
-    const formattedTime = formatDuration(seconds);
 
     useEffect(() => {
         onTimeUpRef.current = onTimeUp;
     }, [onTimeUp]);
 
-    useEffect(() => {
-        initialSecondsRef.current = initialSeconds;
-    }, [initialSeconds]);
+    const startTimer = useCallback(() => {
+        onStartTimer?.();
+        startInterval(onTimeUpRef.current);
+    }, [startInterval, onStartTimer]);
 
-    const clearTimerInterval = useCallback(() => {
-        if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-        }
-    }, []);
-
-    const startTimer = () => {
-        if (seconds > 0) {
-            setIsActive(true);
-            setIsPaused(false);
-            onStartTimer?.();
-        }
-    };
-
-    const pauseTimer = () => {
-        setIsActive(false);
-        setIsPaused(true);
+    const pauseTimer = useCallback(() => {
+        stopInterval();
+        useTimerStore.getState().setIsActive(false);
+        useTimerStore.getState().setIsPaused(true);
         onPauseTimer?.();
-        clearTimerInterval();
-    };
+    }, [stopInterval, onPauseTimer]);
 
-    const resetTimer = () => {
-        setIsActive(false);
-        setIsPaused(false);
-        setSeconds(initialSecondsRef.current);
-        clearTimerInterval();
-    };
-
-    const setTimerValue = useCallback((newSeconds: number) => {
-        setSeconds(Math.max(0, newSeconds));
-    }, []);
-
-    const addMinutes = useCallback((minutes: number) => {
-        setSeconds(prev => prev + minutes * 60);
-    }, []);
+    const resetTimer = useCallback(() => {
+        init(initialSeconds);
+    }, [init, initialSeconds]);
 
     useEffect(() => {
-        if (isActive && seconds > 0) {
-            intervalRef.current = setInterval(() => {
-                setSeconds(prev => {
-                    if (prev <= 1) {
-                        setIsActive(false);
-                        if (onTimeUpRef.current) {
-                            onTimeUpRef.current();
-                        }
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
+        init(initialSeconds);
+        if (autoStart && initialSeconds > 0) {
+            setTimeout(() => startTimer(), 0);
         }
-
-        return clearTimerInterval;
-    }, [isActive, seconds, clearTimerInterval]);
+    }, []);
 
     return {
         seconds,
         isActive,
         isPaused,
-        formattedTime,
+        formattedTime: formatDuration(seconds),
+        canStart: !isActive && seconds > 0,
+        canPause: isActive,
         startTimer,
         pauseTimer,
         resetTimer,
-        setTimerValue,
-        addMinutes,
+        setTimerValue: (s: number) => useTimerStore.getState().setSeconds(Math.max(0, s)),
+        addMinutes: (m: number) => useTimerStore.getState().setSeconds(seconds + m * 60),
     };
 };
