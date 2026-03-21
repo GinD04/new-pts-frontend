@@ -262,7 +262,7 @@ production-deploy:
     name: production
     on_stop: production-deploy-stop
   needs:
-    - job: build-stage-docker
+    - job: build-production-docker
   script:
     - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - docker pull $PRODUCTION_IMAGE_TAG
