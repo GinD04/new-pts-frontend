@@ -44,7 +44,12 @@ build:
     - export PUBLIC_URL=
     - if [[ $CI_PIPELINE_SOURCE == 'merge_request_event' ]]; then export PUBLIC_URL=/review/$CI_COMMIT_REF_SLUG; fi
     - if [[ $CI_COMMIT_BRANCH == 'develop' ]]; then export PUBLIC_URL=/staging; fi
-    - if [[ $CI_COMMIT_BRANCH == 'production' ]]; then export PUBLIC_URL=/prod; fi
+    - |
+      if [[ $CI_COMMIT_BRANCH == 'production' ]]; then
+        echo "Build for production!"
+        export PUBLIC_URL=/prod
+        export NEXT_PUBLIC_BASE_URL=/prod
+      fi
     - npm run build
     - mkdir dist
     - cp -r .next/standalone .next/static public dist/
