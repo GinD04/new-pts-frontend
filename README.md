@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PSYCHOLOGICAL TESTING SYSTEM
 
-## Getting Started
+![Status](https://img.shields.io/badge/status-active_development-2b8c3e?style=flat-square)
+![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)
+![GraphQL](https://img.shields.io/badge/GraphQL-E10098?style=flat-square&logo=graphql)
+![REST](https://img.shields.io/badge/REST-API-0081CB?style=flat-square&logo=rest)
 
-First, run the development server:
+Фронтенд-часть дипломного проекта «Система психологической диагностики».  
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Позволяет пользователям проходить тесты, просматривать предварительные результаты, а администраторам — управлять опросниками и анализировать статистику.  
+Реализован на **Next.js** с гибридным API‑клиентом: **REST** (аутентификация, загрузка файлов) и **GraphQL** (тесты, ответы, аналитика).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+ ⚠️ **Проект находится в активной разработке.** API и интерфейс могут меняться. 
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Технологии
 
-## Learn More
+| Категория          | Инструменты |
+|--------------------|-------------|
+| **Фреймворк**      | Next.js 16 |
+| **Язык**           | TypeScript |
+| **Стили**          | Tailwind CSS + Hero UI |
+| **State-менеджмент** | Zustand |
+| **GraphQL клиент** | Apollo Client |
+| **REST клиент**    | Axios |
+| **Формы**          | React Hook Form + Zod |
+| **Тестирование**   | Vitest + React Testing Library |
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
