@@ -29,7 +29,7 @@ export interface SaveStudentAnswerMutation {
 }
 
 export const SAVE_ANSWER = gql`
-    mutation SaveAnswersMutation($studentId: Int!, $testingId: Int!, $answers: [AnswerInput]!) {
+    mutation SaveAnswersMutation($studentId: Int!, $testingId: Int!, $answers: [AnswerInput!]) {
         saveStudentAnswer(studentId: $studentId, testingId: $testingId, answers: $answers) {
             endTime
             ended
