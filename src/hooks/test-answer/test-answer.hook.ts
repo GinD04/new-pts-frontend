@@ -52,7 +52,6 @@ export const useTestAnswer = ({ answerType, questionId }: UseTestAnswerProps): U
     const saveAnswer = useCallback(
         (v: AnswerValueType) => {
             const answerData = isArrayAnswerData(v) ? v : convertToAnswerData(v);
-
             if (currentAnswer) {
                 updateAnswer(questionId, answerData);
             } else {

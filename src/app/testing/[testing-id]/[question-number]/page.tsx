@@ -87,14 +87,18 @@ export default function QuestionPage() {
         saveAllAnswers({
             variables: {
                 answers: [...answers].map(a => ({
-                    ...a,
+                    answer: a.answer,
                     questionId: Number(a.questionId),
                 })) as AnswerInput[],
                 studentId: user?.id ?? 0,
                 testingId: Number(testingId),
             },
         })
-            .then(() => {
+            .then(response => {
+                if (response?.error) {
+                    throw new Error(response.error.message);
+                }
+
                 clearTest();
                 clearTest();
                 stopInterval();
