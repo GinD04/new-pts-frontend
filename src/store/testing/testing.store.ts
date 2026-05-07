@@ -32,8 +32,8 @@ export const useTestStore = create<TestState>()(
 
             updateAnswer: (questionId, newAnswers) =>
                 set(state => ({
-                    answers: state.answers.map(answer =>
-                        answer.questionId === questionId ? { ...answer, answers: newAnswers } : answer,
+                    answers: state.answers.map(ans =>
+                        ans.questionId === questionId ? { ...ans, answer: newAnswers } : ans,
                     ),
                 })),
 
